@@ -130,6 +130,96 @@
   .review-item:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
   .review-item-text { font-size: 13px; font-weight: 500; }
 
+  /* ============ 回路図・図の概要ボックス ============ */
+  .figure-box {
+    background: #f0f5ff;
+    border: 1.5px solid #c2d3f5;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 10px 0 8px;
+    font-size: 13px;
+  }
+  .figure-box-photo {
+    background: #f5f0ff;
+    border-color: #d3c2f5;
+  }
+  .figure-box-wiring {
+    background: #f0fff5;
+    border-color: #b2e5c8;
+  }
+  .figure-box .fb-head {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 13px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fb-note-inline {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .fb-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .fb-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: white;
+    border: 1px solid #c2d3f5;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .fb-tag-icon { font-size: 12px; }
+  .fb-circuit-svg {
+    margin: 8px 0;
+    background: white;
+    border-radius: 8px;
+    padding: 6px;
+    border: 1px solid #d8e6f7;
+    text-align: center;
+  }
+  .fb-pdf-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--primary);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--primary);
+    margin-top: 6px;
+    cursor: pointer;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    font-family: inherit;
+    padding: 0;
+  }
+  .fb-pdf-link:hover { opacity: 0.75; }
+  .fb-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .fb-icon-row { display: flex; align-items: flex-start; gap: 10px; }
+  .fb-icon-big { font-size: 24px; flex-shrink: 0; }
+  /* dark mode */
+  body.dark .figure-box { background: #1e2536; border-color: #2e3f6e; }
+  body.dark .figure-box-photo { background: #221e36; border-color: #4a3d7a; }
+  body.dark .figure-box-wiring { background: #1a2e22; border-color: #2a6042; }
+  body.dark .fb-tag { background: #252830; border-color: #2e3f6e; }
+  body.dark .fb-circuit-svg { background: #252830; border-color: #2e3f6e; }
+
   /* Study Plan (static parts) */
   .plan-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px; }
   .plan-card h3 { color: var(--primary); font-size: 15px; margin-bottom: 12px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
@@ -5378,6 +5468,205 @@ function startQuiz() {
   renderQuestion();
 }
 
+// ============================================================
+// 回路図・図ボックス生成
+// ============================================================
+
+// 公式試験PDFのURL（年度→URL）
+const EXAM_PDFS = {
+  'R7上':'https://www.shiken.or.jp/candidate/pdf/R7_2denshigaiyou_kami.pdf',
+  'R6上':'https://www.shiken.or.jp/candidate/pdf/R6_2denshigaiyou_kami.pdf',
+  'R6下':'https://www.shiken.or.jp/candidate/pdf/R6_2denshigaiyou_shimo.pdf',
+  'R5上':'https://www.shiken.or.jp/candidate/pdf/R5_2denshigaiyou_kami.pdf',
+  'R5下':'https://www.shiken.or.jp/candidate/pdf/R5_2denshigaiyou_shimo.pdf',
+  'R4上':'https://www.shiken.or.jp/candidate/pdf/R4_2denshigaiyou_kami.pdf',
+  'R4下':'https://www.shiken.or.jp/candidate/pdf/R4_2denshigaiyou_shimo.pdf',
+};
+
+function hasFigureRef(qText) {
+  return /図[にのよう示をはが]|下図|上図|次の図|右図|左図|左側の図|右側の図/.test(qText);
+}
+
+function buildFigureBox(q) {
+  if (!hasFigureRef(q.q)) return '';
+
+  const qText = q.q;
+  const expText = q.exp || '';
+  const cat = q.cat;
+
+  // ---- 公式PDFリンク ----
+  const pdfUrl = EXAM_PDFS[q.year];
+  const pdfLinkHtml = pdfUrl
+    ? `<br><a class="fb-pdf-link" href="${pdfUrl}" target="_blank" rel="noopener">📄 ${escHtml(q.year)} 公式問題PDF（問${q.num}）を確認する</a>`
+    : `<br><span class="fb-note" style="font-size:11px;">（公式サイト「電気技術者試験センター」で過去問PDFを検索）</span>`;
+
+  // ---- 配線図カテゴリ ----
+  if (cat === '配線図') {
+    return `<div class="figure-box figure-box-wiring">
+      <div class="fb-icon-row">
+        <div class="fb-icon-big">📐</div>
+        <div>
+          <div class="fb-head">配線図・単線図の問題</div>
+          <div class="fb-note">実際の配線図は公式過去問PDFに掲載されています。
+単線図→複線図の変換ルール・図記号は「公式まとめ」タブで確認できます。${pdfLinkHtml}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ---- 器具・材料・施工（写真問題）----
+  if (cat === '電気機器・器具' || cat === '施工方法') {
+    return `<div class="figure-box figure-box-photo">
+      <div class="fb-icon-row">
+        <div class="fb-icon-big">📷</div>
+        <div>
+          <div class="fb-head">図・写真の問題</div>
+          <div class="fb-note">実際の器具・材料の写真・図は公式過去問PDFに掲載されています。
+問題文に記載された名称・特徴から判断しましょう。${pdfLinkHtml}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ---- 電気理論 / 配電理論（回路図）----
+  // 電圧値
+  const voltages = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*[Vｖ](?!\w)/g)].map(m => m[1]+'V'))];
+  // 抵抗値
+  const resistances = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*Ω/g)].map(m => m[1]+'Ω'))];
+  // 電流値
+  const currents = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*A(?!\s*種|種)/g)].map(m => m[1]+'A'))];
+  // 電力値
+  const powers = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(kW|W)(?!\w)/g)].map(m => m[0]))];
+  // コンデンサ容量
+  const caps = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(μF|mF|F)/g)].map(m => m[0]))];
+  // インダクタンス
+  const inds = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(mH|H)/g)].map(m => m[0]))];
+  // 周波数
+  const freqs = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*Hz/g)].map(m => m[0]))];
+
+  // 回路種別
+  let circuitType = '';
+  if (/三相/.test(qText))          circuitType = '三相交流回路';
+  else if (/直列.*並列|並列.*直列/.test(qText)) circuitType = '直列並列複合回路';
+  else if (/直列/.test(qText))     circuitType = '直列回路';
+  else if (/並列/.test(qText))     circuitType = '並列回路';
+  else if (/力率/.test(qText))     circuitType = '交流回路（力率）';
+  else if (/インピーダンス/.test(qText)) circuitType = '交流インピーダンス回路';
+  else if (/交流/.test(qText))     circuitType = '交流回路';
+  else if (/直流/.test(qText))     circuitType = '直流回路';
+  else if (/RLC|LC|RL|RC/.test(qText)) circuitType = 'RLC回路';
+  else if (/コイル|インダクタ/.test(qText)) circuitType = '誘導回路';
+  else if (/コンデンサ/.test(qText)) circuitType = '容量性回路';
+  else                              circuitType = '電気回路';
+
+  let tags = [];
+  if (circuitType)      tags.push(['🔄', circuitType]);
+  if (voltages.length)  tags.push(['⚡', voltages.join(' / ')]);
+  if (resistances.length) tags.push(['🟦', resistances.join(' / ')]);
+  if (currents.length)  tags.push(['➡️', currents.join(' / ')]);
+  if (powers.length)    tags.push(['💡', powers.join(' / ')]);
+  if (caps.length)      tags.push(['🔋', caps.join(' / ')]);
+  if (inds.length)      tags.push(['🌀', inds.join(' / ')]);
+  if (freqs.length)     tags.push(['〜', freqs.join(' / ')]);
+
+  const tagsHtml = tags.map(([icon, val]) =>
+    `<span class="fb-tag"><span class="fb-tag-icon">${icon}</span>${escHtml(val)}</span>`
+  ).join('');
+
+  // 簡易回路SVG（直列・並列の場合のみ）
+  const svgHtml = buildSimpleCircuitSvg(q, voltages, resistances, circuitType);
+
+  return `<div class="figure-box">
+    <div class="fb-head">📊 回路図の概要 <span class="fb-note-inline">（実際の図は公式PDFを参照）</span></div>
+    ${svgHtml}
+    ${tagsHtml ? `<div class="fb-tags">${tagsHtml}</div>` : ''}
+    ${pdfLinkHtml}
+  </div>`;
+}
+
+// 簡易回路SVG生成（直列2〜4素子、並列2素子）
+function buildSimpleCircuitSvg(q, voltages, resistances, circuitType) {
+  // 描画対象は直列・並列・直列並列のDC/AC回路のみ
+  if (!voltages.length || !resistances.length) return '';
+  if (resistances.length > 4) return '';
+  if (!/直列|並列/.test(circuitType)) return '';
+
+  const V = voltages[0];
+  const Rs = resistances.slice(0, 4);
+  const n = Rs.length;
+  const isParallel = /並列/.test(circuitType) && !/直列.*並列|並列.*直列/.test(circuitType);
+
+  if (isParallel) {
+    // 並列回路
+    const W = 300, H = 60 + n * 40;
+    const railX1 = 30, railX2 = W - 30;
+    const topY = 20, botY = H - 20;
+    const boxW = 80, boxH = 24;
+
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:320px;display:block;margin:6px auto;">`;
+    // 左・右レール（縦線）
+    s += `<line x1="${railX1}" y1="${topY}" x2="${railX1}" y2="${botY}" stroke="#334" stroke-width="2"/>`;
+    s += `<line x1="${railX2}" y1="${topY}" x2="${railX2}" y2="${botY}" stroke="#334" stroke-width="2"/>`;
+    // 上・下レール（横線）
+    s += `<line x1="${railX1}" y1="${topY}" x2="${railX2}" y2="${topY}" stroke="#334" stroke-width="2"/>`;
+    s += `<line x1="${railX1}" y1="${botY}" x2="${railX2}" y2="${botY}" stroke="#334" stroke-width="2"/>`;
+    // 電源記号（左レール）
+    const midY = (topY + botY) / 2;
+    s += `<line x1="${railX1-8}" y1="${midY-8}" x2="${railX1+8}" y2="${midY-8}" stroke="#e74c3c" stroke-width="3"/>`;
+    s += `<line x1="${railX1-4}" y1="${midY+4}" x2="${railX1+4}" y2="${midY+4}" stroke="#e74c3c" stroke-width="1.5"/>`;
+    s += `<text x="${railX1+12}" y="${midY+4}" font-size="11" fill="#e74c3c">${escHtml(V)}</text>`;
+    // 抵抗（横線）
+    const cx = (railX1 + railX2) / 2;
+    Rs.forEach((r, i) => {
+      const y = topY + 10 + i * ((botY - topY - 20) / (n - 1 || 1));
+      const bx = cx - boxW / 2;
+      const by = y - boxH / 2;
+      s += `<line x1="${railX1}" y1="${y}" x2="${bx}" y2="${y}" stroke="#334" stroke-width="1.5"/>`;
+      s += `<line x1="${bx + boxW}" y1="${y}" x2="${railX2}" y2="${y}" stroke="#334" stroke-width="1.5"/>`;
+      s += `<rect x="${bx}" y="${by}" width="${boxW}" height="${boxH}" rx="4" fill="white" stroke="#3498db" stroke-width="1.5"/>`;
+      s += `<text x="${cx}" y="${y + 4}" font-size="11" fill="#3498db" text-anchor="middle">R${i+1}=${escHtml(r)}</text>`;
+    });
+    s += '</svg>';
+    return `<div class="fb-circuit-svg">${s}</div>`;
+
+  } else {
+    // 直列回路
+    const boxW = 62, boxH = 28;
+    const W = Math.max(320, 60 + (n + 1) * (boxW + 20));
+    const H = 90;
+    const topY = 18, botY = H - 18;
+    const batX = 22;
+
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin:6px auto;">`;
+    // 上下レール
+    s += `<line x1="${batX}" y1="${topY}" x2="${W - 18}" y2="${topY}" stroke="#334" stroke-width="2"/>`;
+    s += `<line x1="${batX}" y1="${botY}" x2="${W - 18}" y2="${botY}" stroke="#334" stroke-width="2"/>`;
+    // 右端縦線
+    s += `<line x1="${W - 18}" y1="${topY}" x2="${W - 18}" y2="${botY}" stroke="#334" stroke-width="2"/>`;
+    // 左縦線（電源）
+    s += `<line x1="${batX}" y1="${topY}" x2="${batX}" y2="${botY}" stroke="#334" stroke-width="2"/>`;
+    // 電源記号
+    const midY = (topY + botY) / 2;
+    s += `<line x1="${batX - 7}" y1="${midY - 8}" x2="${batX + 7}" y2="${midY - 8}" stroke="#e74c3c" stroke-width="3"/>`;
+    s += `<line x1="${batX - 3}" y1="${midY + 4}" x2="${batX + 3}" y2="${midY + 4}" stroke="#e74c3c" stroke-width="1.5"/>`;
+    s += `<text x="${batX + 11}" y="${midY + 5}" font-size="11" fill="#e74c3c">${escHtml(V)}</text>`;
+    // 抵抗ボックス（上ライン上に配置）
+    const spacing = (W - batX - 36 - n * boxW) / (n + 1);
+    let curX = batX + spacing;
+    Rs.forEach((r, i) => {
+      const bx = curX;
+      const by = topY - boxH / 2;
+      s += `<rect x="${bx}" y="${by}" width="${boxW}" height="${boxH}" rx="5" fill="white" stroke="#3498db" stroke-width="1.5"/>`;
+      const label = n <= 2 ? ['R₁','R₂','R₃','R₄'][i] : `R${i+1}`;
+      s += `<text x="${bx + boxW/2}" y="${topY - 4}" font-size="10" fill="#666" text-anchor="middle">${escHtml(label)}</text>`;
+      s += `<text x="${bx + boxW/2}" y="${topY + 9}" font-size="11" fill="#3498db" text-anchor="middle">${escHtml(r)}</text>`;
+      curX += boxW + spacing;
+    });
+    s += '</svg>';
+    return `<div class="fb-circuit-svg">${s}</div>`;
+  }
+}
+
 function renderQuestion() {
   const q = currentQuiz[currentIdx];
   const total = currentQuiz.length;
@@ -5440,6 +5729,8 @@ function renderQuestion() {
     answerPanelHtml = buildAnswerPanel(q, extra, isRevealed, quizAnswered[currentIdx]);
   }
 
+  const figureBoxHtml = buildFigureBox(q);
+
   document.getElementById('q-card').innerHTML = `
     <div class="q-meta">
       <span class="tag tag-year">${escHtml(q.year)}</span>
@@ -5447,6 +5738,7 @@ function renderQuestion() {
       <span class="tag tag-cat">${escHtml(q.cat)}</span>
     </div>
     <div class="question-text">${escHtml(q.q)}</div>
+    ${figureBoxHtml}
     ${hintBtnHtml}
     <div class="choices">${choicesHtml}</div>
     ${revealBtnHtml}
