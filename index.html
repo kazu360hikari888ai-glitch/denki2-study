@@ -130,13 +130,151 @@
   .review-item:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
   .review-item-text { font-size: 13px; font-weight: 500; }
 
-  /* Study Plan */
+  /* Study Plan (static parts) */
   .plan-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px; }
   .plan-card h3 { color: var(--primary); font-size: 15px; margin-bottom: 12px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
   .plan-week { display: flex; flex-direction: column; gap: 6px; }
   .plan-item { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--bg); font-size: 13px; }
   .plan-period { font-weight: 700; color: var(--primary); min-width: 80px; }
   .plan-content { color: var(--text); line-height: 1.6; }
+
+  /* ============ 学習スケジュール インタラクティブ ============ */
+
+  /* 今日のおすすめバナー */
+  .today-banner {
+    background: linear-gradient(135deg, var(--primary) 0%, #2980b9 100%);
+    color: white; border-radius: 14px; padding: 20px 22px;
+    margin-bottom: 20px; box-shadow: 0 4px 16px rgba(26,82,118,0.25);
+  }
+  .today-banner .tb-eyebrow {
+    font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+    opacity: 0.8; margin-bottom: 6px;
+  }
+  .today-banner .tb-title {
+    font-size: 18px; font-weight: 800; margin-bottom: 4px; line-height: 1.3;
+  }
+  .today-banner .tb-sub {
+    font-size: 13px; opacity: 0.85; margin-bottom: 16px; line-height: 1.6;
+  }
+  .today-banner .tb-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .tb-btn-main {
+    background: white; color: var(--primary); border: none;
+    padding: 9px 20px; border-radius: 20px; font-weight: 800;
+    font-size: 14px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .tb-btn-main:hover { background: #eaf0fb; transform: translateY(-1px); }
+  .tb-btn-sub {
+    background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);
+    padding: 9px 18px; border-radius: 20px; font-weight: 700;
+    font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+  }
+  .tb-btn-sub:hover { background: rgba(255,255,255,0.3); }
+  .today-banner .tb-days {
+    float: right; text-align: center;
+    background: rgba(255,255,255,0.15); border-radius: 10px;
+    padding: 8px 14px; margin-left: 12px; margin-bottom: 8px;
+  }
+  .today-banner .tb-days .day-num { font-size: 28px; font-weight: 900; line-height: 1; }
+  .today-banner .tb-days .day-label { font-size: 11px; opacity: 0.8; }
+
+  /* フェーズカード */
+  .phase-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+  .phase-card {
+    background: white; border-radius: 14px; padding: 0;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08); border: 2px solid var(--border);
+    overflow: hidden; transition: box-shadow 0.2s;
+  }
+  .phase-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .phase-card.phase-current {
+    border-color: var(--accent); box-shadow: 0 4px 18px rgba(230,126,34,0.2);
+  }
+  .phase-card.phase-done { opacity: 0.75; }
+  .phase-card-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px 10px; cursor: pointer;
+  }
+  .phase-icon-wrap {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .phase-header-text { flex: 1; min-width: 0; }
+  .phase-period-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .phase-period-label { font-size: 12px; font-weight: 700; color: var(--muted); }
+  .phase-badge-now {
+    background: var(--accent); color: white; font-size: 10px;
+    font-weight: 800; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.05em;
+  }
+  .phase-badge-done {
+    background: var(--correct); color: white; font-size: 10px;
+    font-weight: 800; padding: 2px 8px; border-radius: 10px;
+  }
+  .phase-title { font-size: 15px; font-weight: 800; color: var(--text); }
+  .phase-toggle-icon { font-size: 13px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
+  .phase-card.open .phase-toggle-icon { transform: rotate(180deg); }
+
+  .phase-card-body { display: none; padding: 0 16px 16px; }
+  .phase-card.open .phase-card-body { display: block; }
+
+  /* フェーズ進捗バー */
+  .phase-prog-wrap { margin-bottom: 14px; }
+  .phase-prog-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .phase-prog-label { font-weight: 600; color: var(--muted); }
+  .phase-prog-stat { font-weight: 700; }
+  .phase-prog-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .phase-prog-fill { height: 100%; border-radius: 4px; transition: width 0.7s ease; }
+
+  /* フェーズ説明 */
+  .phase-desc { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+
+  /* アクションボタン行 */
+  .phase-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .phase-btn-start {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 20px; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 13px; font-weight: 800; font-family: inherit;
+    color: white; transition: all 0.2s;
+  }
+  .phase-btn-start:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .phase-btn-outline {
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px 16px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; font-family: inherit;
+    background: white; border: 2px solid var(--border);
+    color: var(--text); cursor: pointer; transition: all 0.2s;
+  }
+  .phase-btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  .phase-btn-weak {
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px 16px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; font-family: inherit;
+    background: #fdedec; border: 2px solid var(--wrong);
+    color: var(--wrong); cursor: pointer; transition: all 0.2s;
+  }
+  .phase-btn-weak:hover { background: var(--wrong); color: white; }
+
+  /* ミニ正答率バッジ（カード閉じ時） */
+  .phase-rate-badge {
+    font-size: 12px; font-weight: 800; padding: 3px 10px;
+    border-radius: 12px; flex-shrink: 0;
+  }
+
+  /* dark mode */
+  body.dark .today-banner { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  body.dark .tb-btn-main { color: var(--primary); }
+  body.dark .phase-card { background: var(--card); }
+  body.dark .phase-card.phase-current { border-color: var(--accent); }
+  body.dark .phase-btn-outline { background: var(--card); border-color: var(--border); color: var(--text); }
+  body.dark .phase-btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  body.dark .phase-btn-weak { background: #3d1a1a; }
+
+  @media (max-width: 500px) {
+    .today-banner .tb-days { float: none; display: inline-block; margin-bottom: 10px; }
+    .phase-actions { gap: 6px; }
+    .phase-btn-start { font-size: 12px; padding: 8px 14px; }
+  }
 
   /* Category Selection */
   .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -565,48 +703,15 @@
 
 <!-- PLAN PAGE -->
 <div class="page" id="page-plan">
-  <div class="plan-card">
-    <h3>📅 3ヶ月学習スケジュール（〜5月24日試験）</h3>
-    <div class="plan-week">
-      <div class="plan-item">
-        <div class="plan-period">第1〜2週<br><small style="color:var(--muted);">3月中旬</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">電気理論の基礎固め</strong><br>
-        オームの法則・合成抵抗・電力計算・交流理論（RLC回路）。計算問題に慣れる。毎日30分×配線図以外の計算問題10問</div>
-      </div>
-      <div class="plan-item">
-        <div class="plan-period">第3〜4週<br><small style="color:var(--muted);">3月下旬</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">配電理論・配線設計</strong><br>
-        単相2線式/3線式、三相3線式の電力・電圧降下計算。幹線・分岐回路の設計。</div>
-      </div>
-      <div class="plan-item">
-        <div class="plan-period">第5〜6週<br><small style="color:var(--muted);">4月上旬</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">電気機器・器具・材料</strong><br>
-        変圧器・電動機・蛍光灯・スイッチ・コンセント・電線・ケーブルの種類と用途。写真問題を中心に覚える。</div>
-      </div>
-      <div class="plan-item">
-        <div class="plan-period">第7〜8週<br><small style="color:var(--muted);">4月中旬</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">施工方法・検査方法</strong><br>
-        金属管工事・合成樹脂管工事・ケーブル工事の施工規則。絶縁抵抗・接地抵抗の測定方法。</div>
-      </div>
-      <div class="plan-item">
-        <div class="plan-period">第9〜10週<br><small style="color:var(--muted);">4月下旬</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">配線図の読解</strong><br>
-        単線図から複線図への変換練習。図記号の完全暗記。配線図問題は5問出題されるため確実に得点源にする。</div>
-      </div>
-      <div class="plan-item">
-        <div class="plan-period">第11〜12週<br><small style="color:var(--muted);">5月上旬</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">総仕上げ・模擬試験</strong><br>
-        過去問5年分を時間を計って実施。苦手分野の重点復習。合格基準は60点（50問中30問正解）以上。</div>
-      </div>
-      <div class="plan-item">
-        <div class="plan-period">直前1週間<br><small style="color:var(--muted);">5月17〜23日</small></div>
-        <div class="plan-content"><strong style="color:var(--primary);">弱点集中と暗記事項の確認</strong><br>
-        弱点復習モードで間違えた問題だけ徹底確認。法令・計算式の最終チェック。前日は早めに休む。</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="plan-card">
+  <!-- 今日のおすすめ（動的） -->
+  <div id="plan-today"></div>
+
+  <!-- フェーズカード（動的） -->
+  <div id="plan-phases-wrap"></div>
+
+  <!-- 出題傾向と配点（静的） -->
+  <div class="plan-card" id="plan-static-tendency">
     <h3>⚡ 出題傾向と配点</h3>
     <div class="plan-week">
       <div class="plan-item"><div class="plan-period">問1〜10</div><div class="plan-content"><strong>電気に関する基礎理論</strong> — オームの法則、合成抵抗、電力・熱量、交流回路（RLC）、三相交流</div></div>
@@ -4845,6 +4950,48 @@ const questionExtras = {
 const CATS   = ['電気理論','配電理論・配線設計','電気機器・器具','施工方法','検査方法・法令','配線図'];
 const CAT_COLORS = ['#3498db','#e67e22','#2ecc71','#9b59b6','#e74c3c','#1abc9c'];
 const SECONDS_PER_Q = 144;   // 50問×144秒 = 7200秒 = 120分
+const EXAM_DATE = new Date('2026-05-24T09:00:00');
+
+// ============================================================
+// 学習フェーズ定義
+// ============================================================
+const STUDY_PHASES = [
+  { id:1, period:'第1〜2週', dates:'3月中旬',
+    start: new Date('2026-03-08'), end: new Date('2026-03-22'),
+    title:'電気理論の基礎固め', icon:'⚡', color:'#3498db',
+    cats:['電気理論'], recCount:10,
+    desc:'オームの法則・合成抵抗・電力計算・交流理論（RLC回路）。計算問題のパターンを身につける。' },
+  { id:2, period:'第3〜4週', dates:'3月下旬',
+    start: new Date('2026-03-22'), end: new Date('2026-04-05'),
+    title:'配電理論・配線設計', icon:'🏠', color:'#e67e22',
+    cats:['配電理論・配線設計'], recCount:10,
+    desc:'単相2線式/3線式・三相3線式の電圧降下計算。幹線・分岐回路の設計規則を完全習得。' },
+  { id:3, period:'第5〜6週', dates:'4月上旬',
+    start: new Date('2026-04-05'), end: new Date('2026-04-19'),
+    title:'電気機器・器具・材料', icon:'🔌', color:'#2ecc71',
+    cats:['電気機器・器具'], recCount:10,
+    desc:'変圧器・電動機・照明器具・スイッチ・コンセント・電線・ケーブルの種類と用途を覚える。' },
+  { id:4, period:'第7〜8週', dates:'4月中旬',
+    start: new Date('2026-04-19'), end: new Date('2026-05-03'),
+    title:'施工方法・検査方法', icon:'🔧', color:'#9b59b6',
+    cats:['施工方法','検査方法・法令'], recCount:10,
+    desc:'金属管/合成樹脂管/ケーブル工事の施工規則。絶縁抵抗・接地抵抗の測定方法と基準値。' },
+  { id:5, period:'第9〜10週', dates:'4月下旬',
+    start: new Date('2026-05-03'), end: new Date('2026-05-10'),
+    title:'配線図の読解', icon:'📐', color:'#1abc9c',
+    cats:['配線図'], recCount:10,
+    desc:'単線図から複線図への変換。図記号の完全暗記。配線図は5問出題で確実に得点源にする。' },
+  { id:6, period:'第11〜12週', dates:'5月上旬',
+    start: new Date('2026-05-10'), end: new Date('2026-05-17'),
+    title:'総仕上げ・模擬試験', icon:'🏁', color:'#e74c3c',
+    cats:[], recCount:50, isAll:true,
+    desc:'全分野50問を本番形式で解く。苦手分野の重点復習。合格基準60%（30/50問）を目指す。' },
+  { id:7, period:'直前1週間', dates:'5月17〜23日',
+    start: new Date('2026-05-17'), end: new Date('2026-05-24'),
+    title:'弱点集中と暗記確認', icon:'⚠️', color:'#f39c12',
+    cats:[], recCount:20, isWeak:true,
+    desc:'弱点問題を徹底復習。法令・計算式の最終確認。前日は早めに休む。' }
+];
 const TIMER_WARN_SEC = 300;  // 残り5分で赤色警告
 
 // ============================================================
@@ -4939,6 +5086,7 @@ function showPage(name) {
   document.querySelectorAll('.tab')[tabIndex[name]]?.classList.add('active');
   if (name === 'dashboard') updateDashboard();
   if (name === 'review') renderReview();
+  if (name === 'plan') renderPlanPage();
   if (name === 'quiz') {
     document.getElementById('quiz-setup').style.display = '';
     document.getElementById('quiz-area').style.display = 'none';
@@ -4978,6 +5126,205 @@ function updateDashboard() {
 // ============================================================
 // Quiz
 // ============================================================
+// ============================================================
+// 学習計画ページ描画
+// ============================================================
+function renderPlanPage() {
+  const now = new Date();
+  const daysLeft = Math.ceil((EXAM_DATE - now) / (1000 * 60 * 60 * 24));
+
+  // 現在フェーズを判定
+  let curIdx = STUDY_PHASES.findIndex(p => now >= p.start && now < p.end);
+  if (curIdx === -1) curIdx = now < STUDY_PHASES[0].start ? 0 : STUDY_PHASES.length - 1;
+
+  // ===== 今日のおすすめバナー =====
+  const cp = STUDY_PHASES[curIdx];
+  const prog = getPhaseProgress(cp);
+  let adviceText = '';
+  if (daysLeft <= 0) {
+    adviceText = '試験当日です！全力を尽くしてください！';
+  } else if (daysLeft <= 7) {
+    adviceText = `試験まであと${daysLeft}日。弱点の最終確認と暗記事項のチェックを。`;
+  } else {
+    adviceText = `今日は「${cp.title}」を重点的に学習しましょう。`;
+  }
+
+  const bannerHtml = `
+    <div class="today-banner">
+      <div style="overflow:hidden;">
+        <div class="tb-days" style="float:right;margin-left:12px;">
+          <div class="day-num">${Math.max(0,daysLeft)}</div>
+          <div class="day-label">日後に試験</div>
+        </div>
+        <div class="tb-eyebrow">📌 TODAY'S STUDY</div>
+        <div class="tb-title">${cp.icon} ${cp.title}</div>
+        <div class="tb-sub">${adviceText}${prog.answered > 0 ? `<br>この分野の現在の正答率：<strong>${prog.rate}%</strong>（${prog.correct}/${prog.answered}問正解）` : ''}</div>
+        <div class="tb-actions">
+          ${cp.isWeak
+            ? `<button class="tb-btn-main" onclick="startWeakReview()">⚠️ 弱点復習を始める</button>`
+            : `<button class="tb-btn-main" onclick="startPlanStudy(${cp.id},${cp.recCount})">▶ ${cp.recCount}問スタート</button>`
+          }
+          <button class="tb-btn-sub" onclick="startWeakReview()">⚠️ 弱点復習</button>
+          <button class="tb-btn-sub" onclick="startPlanStudy(6,50)">🏁 模擬試験（50問）</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('plan-today').innerHTML = bannerHtml;
+
+  // ===== フェーズカード =====
+  let phasesHtml = '<div class="phase-cards">';
+  STUDY_PHASES.forEach((ph, i) => {
+    const isCurrent = i === curIdx;
+    const isDone = now >= ph.end;
+    const prog = getPhaseProgress(ph);
+    const rateColor = prog.rate >= 70 ? 'var(--correct)' : prog.rate >= 50 ? 'var(--accent)' : 'var(--wrong)';
+    const fillColor = prog.rate >= 70 ? '#27ae60' : prog.rate >= 50 ? '#e67e22' : '#e74c3c';
+    const rateBadgeBg = prog.answered === 0 ? '#f0f3f6' : prog.rate >= 70 ? '#eafaf1' : prog.rate >= 50 ? '#fef5e7' : '#fdedec';
+    const rateBadgeColor = prog.answered === 0 ? 'var(--muted)' : rateColor;
+
+    let statusBadge = '';
+    if (isCurrent) statusBadge = '<span class="phase-badge-now">▶ 今ここ</span>';
+    else if (isDone && prog.answered > 0) statusBadge = '<span class="phase-badge-done">✓ 学習済</span>';
+
+    let rateLabel = prog.answered === 0 ? '未学習' : `${prog.rate}% 正解`;
+
+    // 学習ボタン群
+    let actionBtns = '';
+    if (ph.isWeak) {
+      actionBtns = `<button class="phase-btn-weak" onclick="startWeakReview()">⚠️ 弱点問題を復習する</button>`;
+    } else if (ph.isAll) {
+      actionBtns = `
+        <button class="phase-btn-start" style="background:${ph.color}" onclick="startPlanStudy(${ph.id},50)">▶ 50問（本番形式）</button>
+        <button class="phase-btn-outline" onclick="startPlanStudy(${ph.id},20)">20問</button>
+        <button class="phase-btn-weak" onclick="startWeakReview()">⚠️ 弱点のみ</button>`;
+    } else {
+      actionBtns = `
+        <button class="phase-btn-start" style="background:${ph.color}" onclick="startPlanStudy(${ph.id},${ph.recCount})">▶ ${ph.recCount}問スタート</button>
+        <button class="phase-btn-outline" onclick="startPlanStudy(${ph.id},20)">20問</button>
+        <button class="phase-btn-outline" onclick="startPlanStudy(${ph.id},'all')">全問</button>
+        ${prog.answered > 0 ? `<button class="phase-btn-weak" onclick="startPlanWeakStudy(${ph.id})">⚠️ この分野の弱点</button>` : ''}`;
+    }
+
+    phasesHtml += `
+      <div class="phase-card${isCurrent ? ' phase-current' : ''}${isDone && prog.answered > 0 ? ' phase-done' : ''}" id="phase-card-${ph.id}">
+        <div class="phase-card-header" onclick="togglePhaseCard(${ph.id})">
+          <div class="phase-icon-wrap" style="background:${ph.color}22;">${ph.icon}</div>
+          <div class="phase-header-text">
+            <div class="phase-period-row">
+              <span class="phase-period-label">${ph.period}（${ph.dates}）</span>
+              ${statusBadge}
+            </div>
+            <div class="phase-title">${ph.title}</div>
+          </div>
+          <div class="phase-rate-badge" style="background:${rateBadgeBg};color:${rateBadgeColor};">${rateLabel}</div>
+          <div class="phase-toggle-icon">▼</div>
+        </div>
+        <div class="phase-card-body">
+          ${prog.answered > 0 ? `
+          <div class="phase-prog-wrap">
+            <div class="phase-prog-row">
+              <span class="phase-prog-label">学習進捗</span>
+              <span class="phase-prog-stat" style="color:${rateColor}">${prog.correct}問正解 / ${prog.answered}問回答 （正答率 ${prog.rate}%）</span>
+            </div>
+            <div class="phase-prog-bar">
+              <div class="phase-prog-fill" style="width:${prog.rate}%;background:${fillColor};"></div>
+            </div>
+          </div>` : ''}
+          <div class="phase-desc">${ph.desc}</div>
+          <div class="phase-actions">${actionBtns}</div>
+        </div>
+      </div>`;
+  });
+  phasesHtml += '</div>';
+  document.getElementById('plan-phases-wrap').innerHTML = phasesHtml;
+
+  // 現在フェーズを最初から開いた状態にする
+  openPhaseCard(curIdx + 1);
+}
+
+function togglePhaseCard(id) {
+  const card = document.getElementById('phase-card-' + id);
+  if (!card) return;
+  card.classList.toggle('open');
+}
+function openPhaseCard(id) {
+  const card = document.getElementById('phase-card-' + id);
+  if (card) card.classList.add('open');
+}
+
+// フェーズ進捗取得
+function getPhaseProgress(ph) {
+  let phaseQs;
+  if (ph.isAll || ph.isWeak) {
+    phaseQs = questions;
+  } else {
+    phaseQs = questions.filter(q => ph.cats.includes(q.cat));
+  }
+  const answered = phaseQs.filter(q => state.history[q.id] !== undefined);
+  const correct  = phaseQs.filter(q => state.history[q.id] === true);
+  return {
+    total:    phaseQs.length,
+    answered: answered.length,
+    correct:  correct.length,
+    rate: answered.length > 0 ? Math.round(correct.length / answered.length * 100) : 0
+  };
+}
+
+// フェーズ学習スタート
+function startPlanStudy(phaseId, count) {
+  const ph = STUDY_PHASES.find(p => p.id === phaseId);
+  if (!ph) return;
+  if (ph.isWeak) { startWeakReview(); return; }
+
+  let pool = [...questions];
+  if (!ph.isAll && ph.cats.length > 0) {
+    pool = pool.filter(q => ph.cats.includes(q.cat));
+  }
+  if (pool.length === 0) return;
+
+  pool = shuffle(pool);
+  const c = count === 'all' ? pool.length : Math.min(Number(count), pool.length);
+  currentQuiz = pool.slice(0, c);
+  currentIdx = 0;
+  quizAnswered = new Array(c).fill(null);
+  quizRevealed = new Array(c).fill(false);
+  quizScore = 0;
+  stopTimer();
+
+  showPage('quiz');
+  document.getElementById('quiz-setup').style.display = 'none';
+  document.getElementById('quiz-area').style.display = '';
+  document.getElementById('score-area').style.display = 'none';
+  document.getElementById('q-timer').style.display = 'none';
+  renderQuestion();
+}
+
+// この分野の弱点のみ出題
+function startPlanWeakStudy(phaseId) {
+  const ph = STUDY_PHASES.find(p => p.id === phaseId);
+  if (!ph) return;
+  const weakIds = Object.keys(state.wrong).map(Number);
+  let pool = questions.filter(q => weakIds.includes(q.id) && ph.cats.includes(q.cat));
+  if (pool.length === 0) {
+    alert('この分野に弱点問題はありません！');
+    return;
+  }
+  pool = shuffle(pool);
+  currentQuiz = pool;
+  currentIdx = 0;
+  quizAnswered = new Array(pool.length).fill(null);
+  quizRevealed = new Array(pool.length).fill(false);
+  quizScore = 0;
+  stopTimer();
+
+  showPage('quiz');
+  document.getElementById('quiz-setup').style.display = 'none';
+  document.getElementById('quiz-area').style.display = '';
+  document.getElementById('score-area').style.display = 'none';
+  document.getElementById('q-timer').style.display = 'none';
+  renderQuestion();
+}
+
 function startMode(mode) {
   showPage('quiz');
   if (mode === 'random') {
