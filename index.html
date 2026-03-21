@@ -214,11 +214,36 @@
   .fb-icon-row { display: flex; align-items: flex-start; gap: 10px; }
   .fb-icon-big { font-size: 24px; flex-shrink: 0; }
   /* dark mode */
+  /* 実際の図（PDFから抽出）*/
+  .figure-box-real {
+    background: #f8faff;
+    border-color: #a8c0ec;
+  }
+  .fb-real-img-wrap {
+    background: white;
+    border: 1px solid #d0dff5;
+    border-radius: 8px;
+    padding: 8px;
+    margin: 8px 0 4px;
+    text-align: center;
+  }
+  .fb-real-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
   body.dark .figure-box { background: #1e2536; border-color: #2e3f6e; }
+  body.dark .figure-box-real { background: #1a2030; border-color: #3a5090; }
   body.dark .figure-box-photo { background: #221e36; border-color: #4a3d7a; }
   body.dark .figure-box-wiring { background: #1a2e22; border-color: #2a6042; }
   body.dark .fb-tag { background: #252830; border-color: #2e3f6e; }
   body.dark .fb-circuit-svg { background: #252830; border-color: #2e3f6e; }
+  body.dark .fb-real-img-wrap { background: #252830; border-color: #2e3f6e; }
 
   /* Study Plan (static parts) */
   .plan-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px; }
@@ -906,6 +931,8 @@
   </div>
 </div>
 
+<!-- 試験PDFから抽出した回路図データ（GitHub Pages にも同梱） -->
+<script src="question_figures.js"></script>
 <script>
 // ============================================================
 // 問題データベース（実際の試験準拠）
@@ -5490,97 +5517,107 @@ function hasFigureRef(qText) {
 function buildFigureBox(q) {
   if (!hasFigureRef(q.q)) return '';
 
-  const qText = q.q;
-  const expText = q.exp || '';
   const cat = q.cat;
-
-  // ---- 公式PDFリンク ----
   const pdfUrl = EXAM_PDFS[q.year];
   const pdfLinkHtml = pdfUrl
-    ? `<br><a class="fb-pdf-link" href="${pdfUrl}" target="_blank" rel="noopener">📄 ${escHtml(q.year)} 公式問題PDF（問${q.num}）を確認する</a>`
-    : `<br><span class="fb-note" style="font-size:11px;">（公式サイト「電気技術者試験センター」で過去問PDFを検索）</span>`;
+    ? `<a class="fb-pdf-link" href="${pdfUrl}" target="_blank" rel="noopener">📄 ${escHtml(q.year)} 公式問題PDF（問${q.num}）を確認する</a>`
+    : `<span class="fb-note" style="font-size:11px;">（電気技術者試験センター 公式サイトで過去問PDFを検索）</span>`;
 
-  // ---- 配線図カテゴリ ----
+  // ══════════════════════════════════════════════
+  // ① 試験PDFから抽出した実際の図がある場合
+  // ══════════════════════════════════════════════
+  const figSrc = (typeof QUESTION_FIGURES !== 'undefined') ? QUESTION_FIGURES[q.id] : null;
+  if (figSrc) {
+    const catIcon = cat === '配線図' ? '📐' : '📊';
+    const catLabel = cat === '配線図' ? '配線図（単線図）' : '回路図';
+    return `<div class="figure-box figure-box-real">
+      <div class="fb-head">${catIcon} ${catLabel} <span class="fb-note-inline">（公式試験問題より）</span></div>
+      <div class="fb-real-img-wrap">
+        <img src="${figSrc}" alt="${escHtml(q.year)} 問${q.num} 図" class="fb-real-img" loading="lazy">
+      </div>
+      <div style="margin-top:6px;">${pdfLinkHtml}</div>
+    </div>`;
+  }
+
+  // ══════════════════════════════════════════════
+  // ② 図がない場合 — カテゴリ別案内 or 概要ボックス
+  // ══════════════════════════════════════════════
+
+  // 配線図
   if (cat === '配線図') {
     return `<div class="figure-box figure-box-wiring">
       <div class="fb-icon-row">
         <div class="fb-icon-big">📐</div>
         <div>
           <div class="fb-head">配線図・単線図の問題</div>
-          <div class="fb-note">実際の配線図は公式過去問PDFに掲載されています。
-単線図→複線図の変換ルール・図記号は「公式まとめ」タブで確認できます。${pdfLinkHtml}</div>
+          <div class="fb-note">実際の配線図は公式過去問PDFに掲載されています。<br>
+単線図→複線図の変換ルール・図記号は「公式まとめ」タブで確認できます。</div>
+          <div style="margin-top:6px;">${pdfLinkHtml}</div>
         </div>
       </div>
     </div>`;
   }
 
-  // ---- 器具・材料・施工（写真問題）----
+  // 器具・材料・施工（写真問題）
   if (cat === '電気機器・器具' || cat === '施工方法') {
     return `<div class="figure-box figure-box-photo">
       <div class="fb-icon-row">
         <div class="fb-icon-big">📷</div>
         <div>
           <div class="fb-head">図・写真の問題</div>
-          <div class="fb-note">実際の器具・材料の写真・図は公式過去問PDFに掲載されています。
-問題文に記載された名称・特徴から判断しましょう。${pdfLinkHtml}</div>
+          <div class="fb-note">実際の器具・材料の写真・図は公式過去問PDFに掲載されています。<br>
+問題文に記載された名称・特徴から判断しましょう。</div>
+          <div style="margin-top:6px;">${pdfLinkHtml}</div>
         </div>
       </div>
     </div>`;
   }
 
-  // ---- 電気理論 / 配電理論（回路図）----
-  // 電圧値
-  const voltages = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*[Vｖ](?!\w)/g)].map(m => m[1]+'V'))];
-  // 抵抗値
+  // 電気理論 / 配電理論 — テキスト解析による概要
+  const qText = q.q;
+  const voltages    = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*[Vｖ](?!\w)/g)].map(m => m[1]+'V'))];
   const resistances = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*Ω/g)].map(m => m[1]+'Ω'))];
-  // 電流値
-  const currents = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*A(?!\s*種|種)/g)].map(m => m[1]+'A'))];
-  // 電力値
-  const powers = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(kW|W)(?!\w)/g)].map(m => m[0]))];
-  // コンデンサ容量
-  const caps = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(μF|mF|F)/g)].map(m => m[0]))];
-  // インダクタンス
-  const inds = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(mH|H)/g)].map(m => m[0]))];
-  // 周波数
-  const freqs = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*Hz/g)].map(m => m[0]))];
+  const currents    = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*A(?!\s*種|種)/g)].map(m => m[1]+'A'))];
+  const powers      = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(kW|W)(?!\w)/g)].map(m => m[0]))];
+  const caps        = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(μF|mF|F)/g)].map(m => m[0]))];
+  const inds        = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*(mH|H)/g)].map(m => m[0]))];
+  const freqs       = [...new Set([...qText.matchAll(/(\d+(?:\.\d+)?)\s*Hz/g)].map(m => m[0]))];
 
-  // 回路種別
   let circuitType = '';
-  if (/三相/.test(qText))          circuitType = '三相交流回路';
+  if (/三相/.test(qText))                       circuitType = '三相交流回路';
   else if (/直列.*並列|並列.*直列/.test(qText)) circuitType = '直列並列複合回路';
-  else if (/直列/.test(qText))     circuitType = '直列回路';
-  else if (/並列/.test(qText))     circuitType = '並列回路';
-  else if (/力率/.test(qText))     circuitType = '交流回路（力率）';
-  else if (/インピーダンス/.test(qText)) circuitType = '交流インピーダンス回路';
-  else if (/交流/.test(qText))     circuitType = '交流回路';
-  else if (/直流/.test(qText))     circuitType = '直流回路';
-  else if (/RLC|LC|RL|RC/.test(qText)) circuitType = 'RLC回路';
-  else if (/コイル|インダクタ/.test(qText)) circuitType = '誘導回路';
-  else if (/コンデンサ/.test(qText)) circuitType = '容量性回路';
-  else                              circuitType = '電気回路';
+  else if (/直列/.test(qText))                  circuitType = '直列回路';
+  else if (/並列/.test(qText))                  circuitType = '並列回路';
+  else if (/力率/.test(qText))                  circuitType = '交流回路（力率）';
+  else if (/インピーダンス/.test(qText))        circuitType = '交流インピーダンス回路';
+  else if (/交流/.test(qText))                  circuitType = '交流回路';
+  else if (/直流/.test(qText))                  circuitType = '直流回路';
+  else if (/RLC|LC|RL|RC/.test(qText))          circuitType = 'RLC回路';
+  else if (/コイル|インダクタ/.test(qText))     circuitType = '誘導回路';
+  else if (/コンデンサ/.test(qText))            circuitType = '容量性回路';
+  else                                           circuitType = '電気回路';
 
-  let tags = [];
-  if (circuitType)      tags.push(['🔄', circuitType]);
-  if (voltages.length)  tags.push(['⚡', voltages.join(' / ')]);
+  const tags = [];
+  if (circuitType)        tags.push(['🔄', circuitType]);
+  if (voltages.length)    tags.push(['⚡', voltages.join(' / ')]);
   if (resistances.length) tags.push(['🟦', resistances.join(' / ')]);
-  if (currents.length)  tags.push(['➡️', currents.join(' / ')]);
-  if (powers.length)    tags.push(['💡', powers.join(' / ')]);
-  if (caps.length)      tags.push(['🔋', caps.join(' / ')]);
-  if (inds.length)      tags.push(['🌀', inds.join(' / ')]);
-  if (freqs.length)     tags.push(['〜', freqs.join(' / ')]);
+  if (currents.length)    tags.push(['➡️', currents.join(' / ')]);
+  if (powers.length)      tags.push(['💡', powers.join(' / ')]);
+  if (caps.length)        tags.push(['🔋', caps.join(' / ')]);
+  if (inds.length)        tags.push(['🌀', inds.join(' / ')]);
+  if (freqs.length)       tags.push(['〜', freqs.join(' / ')]);
 
   const tagsHtml = tags.map(([icon, val]) =>
     `<span class="fb-tag"><span class="fb-tag-icon">${icon}</span>${escHtml(val)}</span>`
   ).join('');
 
-  // 簡易回路SVG（直列・並列の場合のみ）
   const svgHtml = buildSimpleCircuitSvg(q, voltages, resistances, circuitType);
 
   return `<div class="figure-box">
-    <div class="fb-head">📊 回路図の概要 <span class="fb-note-inline">（実際の図は公式PDFを参照）</span></div>
+    <div class="fb-head">📊 回路図の概要 <span class="fb-note-inline">（PDFに実際の図があります）</span></div>
     ${svgHtml}
     ${tagsHtml ? `<div class="fb-tags">${tagsHtml}</div>` : ''}
-    ${pdfLinkHtml}
+    <div style="margin-top:8px;">${pdfLinkHtml}</div>
   </div>`;
 }
 
