@@ -316,6 +316,63 @@
 
   /* 検索結果ヘッダー */
   .search-meta { font-size:12px; color:var(--muted); margin-bottom:10px; }
+
+  /* ============ 関連資料モーダル ============ */
+  .ref-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 3000; display: flex; align-items: center; justify-content: center;
+    padding: 16px; animation: fadeIn 0.2s ease;
+  }
+  .ref-modal-box {
+    background: var(--card); border-radius: 16px;
+    max-width: 640px; width: 100%; max-height: 85vh;
+    overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    display: flex; flex-direction: column;
+  }
+  .ref-modal-header {
+    position: sticky; top: 0; background: var(--primary); color: white;
+    padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;
+    border-radius: 16px 16px 0 0; z-index: 1; flex-shrink: 0;
+  }
+  .ref-modal-header span { font-size: 15px; font-weight: 700; }
+  .ref-modal-close {
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    padding: 6px 16px; border-radius: 20px; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: inherit;
+    transition: background 0.2s; display: flex; align-items: center; gap: 5px;
+  }
+  .ref-modal-close:hover { background: rgba(255,255,255,0.35); }
+  #ref-modal-body { padding: 18px; overflow-y: auto; }
+  .ref-modal-section { margin-bottom: 20px; }
+  .ref-modal-section:last-child { margin-bottom: 0; }
+  .ref-modal-section h3 {
+    color: var(--primary); font-size: 14px; font-weight: 700;
+    margin-bottom: 10px; padding-bottom: 7px; border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ref-modal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ref-modal-table td {
+    padding: 9px 12px; border-bottom: 1px solid var(--border); line-height: 1.65;
+    vertical-align: top;
+  }
+  .ref-modal-table tr:last-child td { border-bottom: none; }
+  .ref-modal-table td:first-child {
+    font-weight: 600; color: var(--muted); white-space: nowrap;
+    width: 38%; font-size: 12px;
+  }
+  .ref-modal-table code {
+    background: #eaf0fb; padding: 2px 7px; border-radius: 4px;
+    font-family: monospace; font-size: 13px; color: var(--primary); font-weight: 700;
+  }
+  .ref-modal-note {
+    background: #fffbea; border-left: 3px solid #f1c40f;
+    border-radius: 0 8px 8px 0; padding: 10px 14px;
+    font-size: 13px; line-height: 1.75; margin-top: 10px; color: #6d5a00;
+  }
+  /* dark mode */
+  body.dark .ref-modal-table code { background: #2e3140; color: var(--primary); }
+  body.dark .ref-modal-note { background: #2e2a15; border-color: #d4ac0d; color: #d4c060; }
+  body.dark .ref-modal-table td:first-child { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -642,6 +699,17 @@
 
 <!-- 自動保存インジケーター -->
 <div id="save-indicator">✓ 保存済み</div>
+
+<!-- ===== 関連資料モーダル ===== -->
+<div id="ref-modal" class="ref-modal-overlay" style="display:none;" onclick="closeRefModal()">
+  <div class="ref-modal-box" onclick="event.stopPropagation()">
+    <div class="ref-modal-header">
+      <span id="ref-modal-title">📚 関連資料</span>
+      <button class="ref-modal-close" onclick="closeRefModal()">✕ 問題に戻る</button>
+    </div>
+    <div id="ref-modal-body"></div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -5236,12 +5304,219 @@ function getRelatedRefs(q) {
 }
 
 // ============================================================
-// 関連資料を検索ページで開く
+// 関連資料モーダル
 // ============================================================
 function openRef(keyword) {
-  showPage('search');
-  const inp = document.getElementById('search-input');
-  if (inp) { inp.value = keyword; doSearch(); }
+  const modal = document.getElementById('ref-modal');
+  const body  = document.getElementById('ref-modal-body');
+  const title = document.getElementById('ref-modal-title');
+  if (!modal) return;
+  title.textContent = '📚 ' + keyword;
+  body.innerHTML = buildRefContent(keyword);
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRefModal() {
+  const modal = document.getElementById('ref-modal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function buildRefContent(kw) {
+  const c = {
+    'オームの法則': `
+      <div class="ref-modal-section">
+        <h3>⚡ 電気回路の基本公式</h3>
+        <table class="ref-modal-table">
+          <tr><td>オームの法則</td><td><code>V = I × R</code>　（電圧 ＝ 電流 × 抵抗）</td></tr>
+          <tr><td>電流</td><td><code>I = V ÷ R</code></td></tr>
+          <tr><td>抵抗</td><td><code>R = V ÷ I</code></td></tr>
+          <tr><td>電力（3式）</td><td><code>P = V×I = V²/R = I²R</code></td></tr>
+          <tr><td>熱量</td><td><code>Q = P × t [J]</code>　（t は秒に変換）</td></tr>
+          <tr><td>1 kWh</td><td><code>= 3,600,000 J = 3.6 MJ</code></td></tr>
+        </table>
+        <div class="ref-modal-note">💡 直列回路は<strong>電流が共通</strong>（電圧が分かれる）。並列回路は<strong>電圧が共通</strong>（電流が分かれる）。</div>
+      </div>
+      <div class="ref-modal-section">
+        <h3>🔗 合成抵抗</h3>
+        <table class="ref-modal-table">
+          <tr><td>直列接続</td><td><code>R = R₁ + R₂ + …</code></td></tr>
+          <tr><td>並列（2つ）</td><td><code>R = R₁×R₂ ÷ (R₁+R₂)</code>　（積÷和）</td></tr>
+          <tr><td>並列（3つ以上）</td><td><code>1/R = 1/R₁ + 1/R₂ + …</code></td></tr>
+        </table>
+      </div>`,
+
+    'インピーダンス': `
+      <div class="ref-modal-section">
+        <h3>🔌 交流回路・インピーダンス</h3>
+        <table class="ref-modal-table">
+          <tr><td>直列 Z</td><td><code>Z = √(R² + (XL − XC)²)</code></td></tr>
+          <tr><td>誘導リアクタンス</td><td><code>XL = 2πfL</code>　（Ω）</td></tr>
+          <tr><td>容量リアクタンス</td><td><code>XC = 1/(2πfC)</code>　（Ω）</td></tr>
+          <tr><td>力率</td><td><code>cosφ = R / Z = P / (V×I)</code></td></tr>
+          <tr><td>電流</td><td><code>I = V / Z</code></td></tr>
+          <tr><td>最大値と実効値</td><td>最大値 <code>= 実効値 × √2</code>　（√2 ≒ 1.414）</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 <strong>共振</strong>：XL＝XC のとき Z＝R（最小）、電流が最大、力率＝1（cos φ＝1）。</div>
+      </div>`,
+
+    '電圧降下': `
+      <div class="ref-modal-section">
+        <h3>🏠 電圧降下の公式</h3>
+        <table class="ref-modal-table">
+          <tr><td>単相 2 線式</td><td><code>e = 2IR</code>　（往復 2 本分）</td></tr>
+          <tr><td>単相 3 線式（平衡）</td><td><code>e = IR</code>　（中性線に電流なし）</td></tr>
+          <tr><td>三相 3 線式</td><td><code>e = √3 · I · R</code></td></tr>
+          <tr><td>電線抵抗</td><td><code>r = ρL / A</code>　（ρ：抵抗率、L：長さ、A：断面積）</td></tr>
+          <tr><td>電力損失</td><td><code>P損 = I² × R（往復）</code></td></tr>
+        </table>
+        <div class="ref-modal-note">💡 電圧降下が大きいと機器が正常動作しない。距離が長いときは電線を太くして抵抗を下げる。</div>
+      </div>`,
+
+    '分岐回路': `
+      <div class="ref-modal-section">
+        <h3>🔑 分岐回路とコンセント適合表</h3>
+        <table class="ref-modal-table">
+          <tr><td>15 A 分岐</td><td>電線 1.6 mm 以上・コンセント <code>15 A 以下</code></td></tr>
+          <tr><td>20 A 分岐（CB）</td><td>電線 2.0 mm 以上・コンセント <code>20 A 以下</code></td></tr>
+          <tr><td>30 A 分岐</td><td>電線 2.6 mm 以上・コンセント <code>20〜30 A</code></td></tr>
+          <tr><td>40 A 分岐</td><td>電線 8 mm² 以上・コンセント <code>30〜40 A</code></td></tr>
+          <tr><td>50 A 分岐</td><td>電線 14 mm² 以上・コンセント <code>40〜50 A</code></td></tr>
+        </table>
+      </div>
+      <div class="ref-modal-section">
+        <h3>⚡ 分岐点からの距離と許容電流</h3>
+        <table class="ref-modal-table">
+          <tr><td>3 m 以下</td><td>許容電流の制限なし</td></tr>
+          <tr><td>3 m 超〜8 m 以下</td><td>許容電流 <code>≧ 幹線 OCB 定格の 35%</code></td></tr>
+          <tr><td>8 m 超</td><td>許容電流 <code>≧ 幹線 OCB 定格の 55%</code></td></tr>
+        </table>
+      </div>`,
+
+    '工具': `
+      <div class="ref-modal-section">
+        <h3>🔧 工事の種類と使用工具</h3>
+        <table class="ref-modal-table">
+          <tr><td>金属管・切断</td><td>金切りのこ・パイプカッタ</td></tr>
+          <tr><td>金属管・面取り</td><td><strong>リーマ</strong>（バリ取り）</td></tr>
+          <tr><td>金属管・曲げ</td><td><strong>パイプベンダ</strong></td></tr>
+          <tr><td>金属管・穴あけ</td><td><strong>ノックアウトパンチャ</strong>・ホルソ</td></tr>
+          <tr><td>塩ビ管・曲げ</td><td><strong>ガストーチランプ</strong>（加熱して曲げる）</td></tr>
+          <tr><td>電線・圧着</td><td><strong>圧着ペンチ</strong>（リングスリーブ用）</td></tr>
+          <tr><td>電線・切断</td><td>ボルトクリッパ・ニッパ</td></tr>
+          <tr><td>電線・引き入れ</td><td>通線器・呼び線</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 「リーマ＝金属管の面取り」「パイプベンダ＝金属管の曲げ」「ガストーチ＝塩ビ管の曲げ」がよく出る！</div>
+      </div>`,
+
+    '三相誘導電動機': `
+      <div class="ref-modal-section">
+        <h3>⚙️ 三相誘導電動機</h3>
+        <table class="ref-modal-table">
+          <tr><td>同期速度</td><td><code>Ns = 120f / p</code>　（f：周波数、p：極数）</td></tr>
+          <tr><td>すべり</td><td><code>s = (Ns − N) / Ns</code></td></tr>
+          <tr><td>実回転速度</td><td><code>N = Ns × (1 − s)</code></td></tr>
+          <tr><td>始動方法（大型）</td><td>スターデルタ始動・リアクトル始動</td></tr>
+          <tr><td>正逆転切替</td><td>3 本のうち 2 本を入れ替える</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 50 Hz・4 極 → Ns＝120×50÷4＝<strong>1500 min⁻¹</strong>。60 Hz → 1800 min⁻¹。周波数が上がると速度も上がる。</div>
+      </div>`,
+
+    'ケーブル支持': `
+      <div class="ref-modal-section">
+        <h3>📏 施工の重要数値まとめ</h3>
+        <table class="ref-modal-table">
+          <tr><td>ケーブル支持間隔</td><td><code>2 m 以下</code>（造営材に沿わせる場合）</td></tr>
+          <tr><td>合成樹脂管支持間隔</td><td><code>1.5 m 以下</code></td></tr>
+          <tr><td>金属管支持間隔</td><td><code>2 m 以下</code></td></tr>
+          <tr><td>金属管の曲げ半径</td><td>管内径の <code>6 倍以上</code></td></tr>
+          <tr><td>地中埋設（重量物がかかる）</td><td><code>1.2 m 以上</code></td></tr>
+          <tr><td>地中埋設（一般）</td><td><code>0.6 m 以上</code></td></tr>
+          <tr><td>弱電流電線との離隔</td><td><code>0.1 m 以上</code></td></tr>
+        </table>
+        <div class="ref-modal-note">💡 「ケーブル・金属管 → 2 m」「合成樹脂管 → 1.5 m」「地中重量物 → 1.2 m」「地中一般 → 0.6 m」。</div>
+      </div>`,
+
+    '接地工事': `
+      <div class="ref-modal-section">
+        <h3>🛡 接地工事の種類と接地抵抗値</h3>
+        <table class="ref-modal-table">
+          <tr><td>A 種接地工事</td><td><code>10 Ω 以下</code>　高圧・特別高圧機器の金属外箱</td></tr>
+          <tr><td>B 種接地工事</td><td><code>150 / I₀ Ω 以下</code>　変圧器低圧側中性点</td></tr>
+          <tr><td>C 種接地工事</td><td><code>10 Ω 以下</code>　使用電圧 300 V 超の低圧機器<br><small>（漏電遮断器設置時は 500 Ω 以下）</small></td></tr>
+          <tr><td>D 種接地工事</td><td><code>100 Ω 以下</code>　使用電圧 300 V 以下の低圧機器<br><small>（漏電遮断器設置時は 500 Ω 以下）</small></td></tr>
+        </table>
+        <div class="ref-modal-note">💡 A・C 種は <strong>10 Ω</strong>、D 種は <strong>100 Ω</strong>。C と D の違いは「300 V 超か以下か」。B 種だけ計算値。</div>
+      </div>`,
+
+    '絶縁抵抗': `
+      <div class="ref-modal-section">
+        <h3>📋 絶縁抵抗の最小値（電技解釈 第 58 条）</h3>
+        <table class="ref-modal-table">
+          <tr><td>対地電圧 <strong>150 V 以下</strong></td><td><code>0.1 MΩ 以上</code></td></tr>
+          <tr><td>対地電圧 <strong>150 V 超〜300 V 以下</strong></td><td><code>0.2 MΩ 以上</code></td></tr>
+          <tr><td>対地電圧 <strong>300 V 超</strong></td><td><code>0.4 MΩ 以上</code></td></tr>
+          <tr><td>測定器</td><td>絶縁抵抗計（<code>メガー</code>）500 V 用を使用</td></tr>          <tr><td>測定条件</td><td>電路を停止した状態（無充電）で測定</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 0.1 → 0.2 → 0.4 と倍増する。単相 100 V 回路 → 0.1 MΩ、単相 200 V 回路 → 0.2 MΩ と覚える。</div>
+      </div>`,
+
+    '電気工事士法': `
+      <div class="ref-modal-section">
+        <h3>📜 電気工事士法のポイント</h3>
+        <table class="ref-modal-table">
+          <tr><td>一般用電気工作物</td><td>第一種・第二種電気工事士が従事可</td></tr>
+          <tr><td>自家用電気工作物（500 kW 未満）</td><td>第一種電気工事士・認定電気工事従事者</td></tr>
+          <tr><td>免状の交付</td><td>都道府県知事</td></tr>
+          <tr><td>免状の携帯</td><td>工事中は常に携帯義務あり</td></tr>
+          <tr><td>軽微な工事</td><td>免状不要（ランプ交換・コード接続など）</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 第二種 → 一般用（600 V 以下の受電）のみ。第一種 → 自家用（最大電力 500 kW 未満）も可。</div>
+      </div>
+      <div class="ref-modal-section">
+        <h3>⚡ 電圧の区分（電技基準）</h3>
+        <table class="ref-modal-table">
+          <tr><td>低圧</td><td>直流 <code>750 V 以下</code>・交流 <code>600 V 以下</code></td></tr>
+          <tr><td>高圧</td><td>直流 750 V 超〜7000 V 以下・交流 600 V 超〜7000 V 以下</td></tr>
+          <tr><td>特別高圧</td><td><code>7000 V 超</code></td></tr>
+        </table>
+      </div>`,
+
+    '電線の色': `
+      <div class="ref-modal-section">
+        <h3>🎨 電線の色と極性</h3>
+        <table class="ref-modal-table">
+          <tr><td>接地側（N・中性線）</td><td><code>白色</code></td></tr>
+          <tr><td>非接地側（L・電圧側）</td><td><code>黒色</code>（赤・青も使用）</td></tr>
+          <tr><td>接地線（アース）</td><td><code>緑色</code>（または緑/黄の組合せ）</td></tr>
+          <tr><td>3 路スイッチの共通端子</td><td><code>黒色</code>で接続</td></tr>
+          <tr><td>コンセント 長スロット</td><td>接地側（<code>白線</code>）</td></tr>
+          <tr><td>コンセント 短スロット</td><td>非接地側（<code>黒線</code>）</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 覚え方：「白は長い（長スロット＝接地側）・黒は短い（短スロット＝非接地側）」。</div>
+      </div>`,
+
+    'リングスリーブ': `
+      <div class="ref-modal-section">
+        <h3>🔗 リングスリーブの選定基準</h3>
+        <table class="ref-modal-table">
+          <tr><td>小スリーブ（○刻印）</td><td>1.6 mm × 2 本<br>1.6 mm × 3〜4 本<br>2.0 mm × 2 本</td></tr>
+          <tr><td>中スリーブ（中刻印）</td><td>1.6 mm × 5〜6 本<br>2.0 mm × 3〜4 本<br>2.0 mm + 1.6 mm 混在（断面積大）</td></tr>
+          <tr><td>大スリーブ（大刻印）</td><td>2.0 mm × 5 本以上<br>断面積の合計が大きい場合</td></tr>
+        </table>
+        <div class="ref-modal-note">💡 技能試験では「種類と個数」が頻出。圧着工具の刻印間違いは欠陥になる。<br>2.0 mm × 2 本 → <strong>小スリーブに○刻印</strong>で圧着。</div>
+      </div>`
+  };
+
+  if (c[kw]) return c[kw];
+
+  // 登録のないキーワードは検索ページへのリンクを案内
+  return `<div style="padding:24px;text-align:center;color:var(--muted);">
+    <div style="font-size:32px;margin-bottom:12px;">🔍</div>
+    <div style="font-size:14px;margin-bottom:16px;">「${escHtml(kw)}」の詳細は検索ページで確認できます。</div>
+    <button class="btn btn-primary" onclick="closeRefModal();showPage('search');document.getElementById('search-input').value='${escHtml(kw)}';doSearch();">🔍 検索ページで調べる</button>
+  </div>`;
 }
 
 function answer(idx) {
@@ -5413,6 +5688,12 @@ function confirmReset() {
 // Keyboard Shortcuts
 // ============================================================
 document.addEventListener('keydown', (e) => {
+  // Escape キーでモーダルを閉じる
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('ref-modal');
+    if (modal && modal.style.display !== 'none') { closeRefModal(); return; }
+  }
+
   // 演習中のみ有効
   const quizArea = document.getElementById('quiz-area');
   if (!quizArea || quizArea.style.display === 'none') return;
