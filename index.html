@@ -181,7 +181,7 @@
   .formula-item code { background:#eaf0fb; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:13px; color:var(--primary); }
 
   /* Hint Button & Box */
-  .hint-btn-wrap { margin-bottom: 16px; }
+  .hint-btn-wrap { margin-bottom: 12px; }
   .hint-btn {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 7px 16px; border-radius: 20px; cursor: pointer;
@@ -196,14 +196,92 @@
     padding: 14px 16px; background: #fffdf0;
     border: 2px solid #f1c40f; border-radius: 10px;
     font-size: 14px; line-height: 1.8; color: #7d6608;
-    animation: fadeIn 0.2s ease;
+    animation: fadeIn 0.25s ease;
   }
   .hint-box.show { display: block; }
   .hint-box .hint-head {
     font-size: 11px; font-weight: 800; color: #d4ac0d;
     letter-spacing: 0.05em; margin-bottom: 6px;
   }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 解答を見るボタン */
+  .btn-reveal {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 18px; border-radius: 20px; cursor: pointer;
+    font-size: 13px; font-weight: 700; font-family: inherit;
+    border: 2px solid #8e44ad; background: transparent; color: #8e44ad;
+    transition: all 0.2s;
+  }
+  .btn-reveal:hover { background: #f5eef8; }
+  .q-action-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+
+  /* 回答後パネル */
+  .answer-panel { margin-top: 20px; animation: fadeIn 0.3s ease; }
+  .answer-correct-box {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 18px; border-radius: 12px; margin-bottom: 12px;
+    font-size: 15px; font-weight: 700; border: 2px solid;
+  }
+  .answer-correct-box.correct-ans { background: #eafaf1; border-color: var(--correct); color: var(--correct); }
+  .answer-correct-box.wrong-ans { background: #fdedec; border-color: var(--wrong); color: var(--wrong); }
+  .answer-correct-box.revealed-ans { background: #f5eef8; border-color: #8e44ad; color: #6c3483; }
+  .answer-correct-box .ans-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+  .answer-correct-box .ans-body { flex: 1; }
+  .answer-correct-box .ans-label { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; margin-bottom: 3px; opacity: 0.8; }
+  .answer-correct-box .ans-text { font-size: 15px; font-weight: 700; }
+  .answer-correct-box .ans-your { font-size: 12px; font-weight: 500; margin-top: 4px; opacity: 0.85; }
+
+  .answer-section {
+    padding: 16px 18px; background: #f8f9fa;
+    border-left: 4px solid var(--primary); border-radius: 0 10px 10px 0;
+    font-size: 14px; line-height: 1.85; margin-bottom: 10px;
+  }
+  .answer-section h4 {
+    color: var(--primary); font-size: 12px; font-weight: 800;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .answer-tip-section {
+    padding: 14px 16px; background: #fff9e6;
+    border-left: 4px solid #f1c40f; border-radius: 0 10px 10px 0;
+    font-size: 14px; line-height: 1.85; margin-bottom: 10px;
+  }
+  .answer-tip-section h4 {
+    color: #b7770d; font-size: 12px; font-weight: 800;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .ref-section { margin-bottom: 10px; }
+  .ref-section h4 {
+    color: var(--muted); font-size: 12px; font-weight: 800;
+    letter-spacing: 0.08em; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .ref-links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ref-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; background: #eaf0fb; color: var(--primary);
+    border-radius: 20px; font-size: 12px; font-weight: 700;
+    cursor: pointer; border: 1px solid #c8daf5; transition: all 0.2s;
+    text-decoration: none;
+  }
+  .ref-link:hover { background: var(--primary); color: white; }
+
+  /* dark mode for new elements */
+  body.dark .answer-correct-box.correct-ans { background: #1a3d2a; border-color: var(--correct); color: var(--correct); }
+  body.dark .answer-correct-box.wrong-ans { background: #3d1a1a; border-color: var(--wrong); color: var(--wrong); }
+  body.dark .answer-correct-box.revealed-ans { background: #2e1f40; border-color: #9b59b6; color: #c39bd3; }
+  body.dark .answer-section { background: #2e3140; }
+  body.dark .answer-tip-section { background: #2e2a1a; color: #d4c060; }
+  body.dark .answer-tip-section h4 { color: #d4ac0d; }
+  body.dark .ref-link { background: #2e3140; border-color: #3a4060; color: var(--primary); }
+  body.dark .ref-link:hover { background: var(--primary); color: white; }
+  body.dark .hint-box { background: #2e2a1a; color: #d4c060; }
+  body.dark .btn-reveal { border-color: #9b59b6; color: #c39bd3; }
+  body.dark .btn-reveal:hover { background: #2e1f40; }
 
   /* ダークモード */
   body.dark { --bg:#1a1d23; --card:#252830; --border:#3a3d45; --text:#e0e4ed; --muted:#8892a4; --primary:#5b9bd5; --accent:#f0913a; --correct:#3dba73; --wrong:#e05555; }
@@ -4738,6 +4816,7 @@ loadState();
 let currentQuiz = [];
 let currentIdx = 0;
 let quizAnswered = [];
+let quizRevealed = [];   // true = 解答確認ボタンで正解を表示した
 let quizScore = 0;
 let timerInterval = null;
 let timerSeconds = 0;
@@ -4864,6 +4943,7 @@ function startQuiz() {
   currentQuiz = pool.slice(0, count);
   currentIdx = 0;
   quizAnswered = new Array(count).fill(null);
+  quizRevealed = new Array(count).fill(false);
   quizScore = 0;
 
   // タイマー設定
@@ -4886,16 +4966,17 @@ function startQuiz() {
 function renderQuestion() {
   const q = currentQuiz[currentIdx];
   const total = currentQuiz.length;
-  const answered = quizAnswered.filter(a => a !== null).length;
 
   const isAnswered = quizAnswered[currentIdx] !== null;
+  const isRevealed = isAnswered && quizRevealed[currentIdx];
 
-  // Progress（回答済みなら currentIdx+1 で100%まで進む）
+  // Progress
   document.getElementById('q-progress-text').textContent = `問題 ${currentIdx + 1} / ${total}`;
   document.getElementById('q-score-text').textContent = `正解: ${quizScore}問`;
   const progressPct = isAnswered ? ((currentIdx + 1) / total * 100) : (currentIdx / total * 100);
   document.getElementById('q-progress-bar').style.width = progressPct + '%';
 
+  // Choices HTML
   let choicesHtml = q.choices.map((c, i) => {
     let cls = 'choice';
     let icon = '';
@@ -4906,31 +4987,16 @@ function renderQuestion() {
     }
     return `<div class="${cls}" onclick="answer(${i})">
       <span class="choice-label">${['イ','ロ','ハ','ニ'][i]}.</span>
-      <span>${c.replace(/^[イロハニ]\. /, '')}${icon}</span>
+      <span>${escHtml(c.replace(/^[イロハニ]\. /, ''))}${icon}</span>
     </div>`;
   }).join('');
 
-  // extra は tipHtml・faqHtml・hintBtnHtml すべてで使うので先に定義
   const extra = questionExtras[q.id] || {};
 
-  let resultHtml = '';
-  let expHtml = '';
-  if (isAnswered) {
-    const correct = quizAnswered[currentIdx] === q.answer;
-    resultHtml = `<div class="result-icon">${correct ? '⭕' : '❌'}</div>
-      <div class="result-text ${correct ? 'correct-text' : 'wrong-text'}">${correct ? '正解！' : '不正解'}</div>`;
-    const tipHtml = extra.tip ? `<div class="tip-box"><div class="tip-label">💡 覚えるコツ</div>${extra.tip}</div>` : '';
-    const faqHtml = extra.faq && extra.faq.length > 0
-      ? '<div class="faq-box">' + extra.faq.map((f,fi) =>
-          `<div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>❓ ${f.q}</span><span class="faq-icon">▼</span></div><div class="faq-a">${f.a}</div></div>`
-        ).join('') + '</div>'
-      : '';
-    expHtml = `<div class="explanation show"><h4>📖 解説</h4>${q.exp}${tipHtml}${faqHtml}</div>`;
-  }
-
-  // ヒントボタン（未回答時のみ表示）
+  // ヒントボタン（未回答時のみ）
   let hintBtnHtml = '';
-  if (!isAnswered && extra.tip) {
+  if (!isAnswered) {
+    const hintText = extra.tip ? extra.tip.replace(/^💡\s*/, '') : getAutoHint(q);
     hintBtnHtml = `
       <div class="hint-btn-wrap">
         <button class="hint-btn" id="hint-btn" onclick="toggleHint()" type="button">
@@ -4939,22 +5005,37 @@ function renderQuestion() {
         </button>
         <div class="hint-box" id="hint-box">
           <div class="hint-head">💡 ヒント</div>
-          ${extra.tip.replace(/^💡\s*/, '')}
+          ${hintText}
         </div>
       </div>`;
   }
 
+  // 解答を見るボタン（未回答時のみ）
+  let revealBtnHtml = '';
+  if (!isAnswered) {
+    revealBtnHtml = `<div class="q-action-row">
+      <button class="btn-reveal" onclick="revealAnswer()" title="選択せずに解答を確認する">📖 解答を見る</button>
+      <span style="font-size:11px;color:var(--muted);">※ 解答確認は弱点として記録されます</span>
+    </div>`;
+  }
+
+  // 回答後パネル
+  let answerPanelHtml = '';
+  if (isAnswered) {
+    answerPanelHtml = buildAnswerPanel(q, extra, isRevealed, quizAnswered[currentIdx]);
+  }
+
   document.getElementById('q-card').innerHTML = `
     <div class="q-meta">
-      <span class="tag tag-year">${q.year}</span>
+      <span class="tag tag-year">${escHtml(q.year)}</span>
       <span class="tag tag-num">問${q.num}</span>
-      <span class="tag tag-cat">${q.cat}</span>
+      <span class="tag tag-cat">${escHtml(q.cat)}</span>
     </div>
-    <div class="question-text">${q.q}</div>
+    <div class="question-text">${escHtml(q.q)}</div>
     ${hintBtnHtml}
     <div class="choices">${choicesHtml}</div>
-    ${resultHtml}
-    ${expHtml}
+    ${revealBtnHtml}
+    ${answerPanelHtml}
   `;
 
   // Nav buttons
@@ -4962,10 +5043,205 @@ function renderQuestion() {
   const isLast = currentIdx === currentQuiz.length - 1;
   document.getElementById('btn-next').style.display = isAnswered && !isLast ? '' : 'none';
   document.getElementById('btn-finish').style.display = isAnswered && isLast ? '' : 'none';
-  // スキップボタン（未回答かつ最後でない場合に表示）
   document.getElementById('btn-skip').style.display = !isAnswered && !isLast ? '' : 'none';
-  // キーボードガイド表示
   document.getElementById('kbd-guide').style.display = '';
+}
+
+// ============================================================
+// 解答パネル構築
+// ============================================================
+function buildAnswerPanel(q, extra, isRevealed, userAnswer) {
+  const correct = userAnswer === q.answer;
+  const labels = ['イ','ロ','ハ','ニ'];
+  const correctChoiceText = `${labels[q.answer]}. ${q.choices[q.answer].replace(/^[イロハニ]\. /, '')}`;
+
+  // 正誤ボックス
+  let boxCls, boxIcon, statusLabel, yourAnswerHtml = '';
+  if (isRevealed) {
+    boxCls = 'revealed-ans';
+    boxIcon = '📖';
+    statusLabel = '解答確認';
+  } else if (correct) {
+    boxCls = 'correct-ans';
+    boxIcon = '⭕';
+    statusLabel = '正解！';
+  } else {
+    boxCls = 'wrong-ans';
+    boxIcon = '❌';
+    statusLabel = '不正解';
+    const yourText = `${labels[userAnswer]}. ${q.choices[userAnswer].replace(/^[イロハニ]\. /, '')}`;
+    yourAnswerHtml = `<div class="ans-your">あなたの回答：${escHtml(yourText)}</div>`;
+  }
+
+  const correctBox = `
+    <div class="answer-correct-box ${boxCls}">
+      <div class="ans-icon">${boxIcon}</div>
+      <div class="ans-body">
+        <div class="ans-label">${statusLabel}</div>
+        <div class="ans-text">正解：${escHtml(correctChoiceText)}</div>
+        ${yourAnswerHtml}
+      </div>
+    </div>`;
+
+  // 解説
+  const expSection = `
+    <div class="answer-section">
+      <h4>📖 わかりやすい解説</h4>
+      ${escHtml(q.exp)}
+    </div>`;
+
+  // 覚え方のポイント
+  const tipText = extra.tip ? extra.tip.replace(/^💡\s*/, '') : getAutoMemoryTip(q);
+  const tipSection = `
+    <div class="answer-tip-section">
+      <h4>💡 覚え方のポイント</h4>
+      ${tipText}
+    </div>`;
+
+  // よくある疑問 (FAQ)
+  let faqHtml = '';
+  if (extra.faq && extra.faq.length > 0) {
+    faqHtml = '<div class="faq-box">' + extra.faq.map((f, fi) =>
+      `<div class="faq-item">
+         <div class="faq-q" onclick="toggleFaq(this)">
+           <span>❓ ${escHtml(f.q)}</span>
+           <span class="faq-icon">▼</span>
+         </div>
+         <div class="faq-a">${escHtml(f.a)}</div>
+       </div>`
+    ).join('') + '</div>';
+  }
+
+  // 関連資料リンク
+  const refs = getRelatedRefs(q);
+  let refHtml = '';
+  if (refs.length > 0) {
+    const linksHtml = refs.map(r =>
+      `<a class="ref-link" onclick="openRef('${escHtml(r.search)}')" tabindex="0">📎 ${escHtml(r.label)}</a>`
+    ).join('');
+    refHtml = `<div class="ref-section"><h4>📚 関連資料</h4><div class="ref-links">${linksHtml}</div></div>`;
+  }
+
+  return `<div class="answer-panel">${correctBox}${expSection}${tipSection}${faqHtml}${refHtml}</div>`;
+}
+
+// ============================================================
+// 解答確認（解答ボタン）
+// ============================================================
+function revealAnswer() {
+  if (quizAnswered[currentIdx] !== null) return;
+  const q = currentQuiz[currentIdx];
+  quizRevealed[currentIdx] = true;
+  quizAnswered[currentIdx] = q.answer;
+  // 弱点として記録
+  state.total++;
+  state.history[q.id] = false;
+  state.wrong[q.id] = (state.wrong[q.id] || 0) + 1;
+  saveState();
+  renderQuestion();
+}
+
+// ============================================================
+// 自動ヒント生成
+// ============================================================
+function getAutoHint(q) {
+  const catHints = {
+    '電気理論': [
+      'V=IR（オームの法則）・P=VI（電力）・Z=√(R²+X²)（インピーダンス）を思い出しましょう。',
+      '単位に注意！kWはW×1000、kJはJ×1000。時間は秒（s）に変換してから計算します。',
+      '三相電力：P=√3×V×I×cosφ。Y結線の相電圧=線間電圧÷√3 です。',
+      '合成抵抗：直列は足し算、並列2つは「積÷和」で計算できます。'
+    ],
+    '配電理論・配線設計': [
+      '電圧降下：単相2線式 e=2IR、単相3線式（平衡） e=IR（片線分）、三相3線式 e=√3·IR。',
+      '分岐回路の保護：3m以下→許容電流制限なし、3〜8m→35%以上、8m超→55%以上が目安。',
+      '電動機の幹線電流：電動機の1.25倍＋電熱器の合計。複数の電動機は最大のものを1.25倍。',
+      '分岐回路のコンセント：20A（CB）→20A以下、30A→20〜30A、15A→15A以下。'
+    ],
+    '電気機器・器具': [
+      '工具と工事の組み合わせが頻出！リーマ→金属管面取り、パイプベンダ→金属管曲げ、ガストーチ→塩ビ管曲げ。',
+      '「誤っているもの」を選ぶ問題は4択中1つだけ間違い。消去法で正しいものを3つ見つけましょう。',
+      '機器の名前・用途・設置条件をセットで覚えましょう。',
+      '漏電遮断器：高感度形→30mA以下、中感度形→30〜1000mA、高速形→0.1秒以内。'
+    ],
+    '施工方法': [
+      '施工の数値：ケーブル支持2m以下、合成樹脂管支持1.5m以下、金属管曲げ半径=管内径×6倍以上。',
+      '接地工事の種類：A種10Ω（高圧機器）、C種10Ω（300V超）、D種100Ω（300V以下）。',
+      '地中直接埋設：重量物がかかる場所は1.2m以上、それ以外は0.6m以上の深さが必要。',
+      '合成樹脂管は金属管と異なり、ボンド線（接地）が不要な場合があります。'
+    ],
+    '検査方法・法令': [
+      '絶縁抵抗の基準値：対地150V以下→0.1MΩ、150V超300V以下→0.2MΩ、300V超→0.4MΩ。',
+      '絶縁抵抗計（メガー）は電路の電圧を切った状態で測定。接地抵抗計（アース・テスタ）は接地抵抗測定。',
+      '電気工事士法：一般用電気工作物の工事には第一種・第二種電気工事士の免状が必要。',
+      '自家用電気工作物（最大電力500kW未満）：電気主任技術者の選任が必要。'
+    ],
+    '配線図': [
+      '配線図の図記号は確実に覚えましょう。特に○・□・△の違いと内部記号に注意。',
+      'リングスリーブの選定：電線2.0mm×2本→小、2.0mm×3〜4本または1.6mm×4本以上→中。',
+      'コンセントの刃受け：長い方（縦長スロット）が接地側（白線）。',
+      '単線図から電線本数を数える：スイッチを経由する回路を追って複線図に起こすと分かりやすい。'
+    ]
+  };
+  const hints = catHints[q.cat] || ['問題をよく読んで、選択肢を一つずつ検討しましょう。'];
+  return hints[q.num % hints.length];
+}
+
+// ============================================================
+// 自動・覚え方のポイント生成
+// ============================================================
+function getAutoMemoryTip(q) {
+  const catTips = {
+    '電気理論': '計算問題は「公式→数値代入→単位確認」の3ステップで解く習慣をつけましょう。選択肢の数値から逆算する方法も有効です。',
+    '配電理論・配線設計': '電圧降下の公式は単相2線式を基本にして覚えましょう。「2本分の電線を往復する」イメージで e=2IR が導けます。',
+    '電気機器・器具': '実物や写真を見ながら名前と用途を覚えると記憶に残りやすいです。工具は「何をするための道具か」を考えると応用が利きます。',
+    '施工方法': '施工規則の数値は語呂合わせや表に整理して覚えましょう。「ケーブルは2m、塩ビ管は1.5m」と対比で暗記すると効果的。',
+    '検査方法・法令': '数値は「絶縁0.1/0.2/0.4 MΩ」「接地A種10Ω・D種100Ω」と表にして覚えましょう。法令問題は条文の「できる・できない」に注意。',
+    '配線図': '図記号は毎日少しずつ書いて覚えましょう。配線図問題は配点5点と高いので、全問正解を目指す価値があります。'
+  };
+  return catTips[q.cat] || 'この問題に関連する公式や規則をノートにまとめて、繰り返し確認しましょう。';
+}
+
+// ============================================================
+// 関連資料リンク生成
+// ============================================================
+function getRelatedRefs(q) {
+  const refMap = {
+    '電気理論': [
+      { label: '電気回路の基本公式', search: 'オームの法則' },
+      { label: 'インピーダンス・力率', search: 'インピーダンス' }
+    ],
+    '配電理論・配線設計': [
+      { label: '電圧降下の公式', search: '電圧降下' },
+      { label: '分岐回路の設計', search: '分岐回路' }
+    ],
+    '電気機器・器具': [
+      { label: '工具と工事の種類', search: '工具' },
+      { label: '電動機・照明器具', search: '三相誘導電動機' }
+    ],
+    '施工方法': [
+      { label: '施工の重要数値', search: 'ケーブル支持' },
+      { label: '接地工事の種類', search: '接地工事' }
+    ],
+    '検査方法・法令': [
+      { label: '絶縁抵抗の基準値', search: '絶縁抵抗' },
+      { label: '電気工事士法', search: '電気工事士法' }
+    ],
+    '配線図': [
+      { label: '電線の色・極性', search: '電線の色' },
+      { label: 'リングスリーブ選定', search: 'リングスリーブ' }
+    ]
+  };
+  return refMap[q.cat] || [];
+}
+
+// ============================================================
+// 関連資料を検索ページで開く
+// ============================================================
+function openRef(keyword) {
+  showPage('search');
+  const inp = document.getElementById('search-input');
+  if (inp) { inp.value = keyword; doSearch(); }
 }
 
 function answer(idx) {
@@ -5077,7 +5353,7 @@ function startWeakReview() {
   const weakQs = questions.filter(q => weakIds.includes(q.id));
   if (weakQs.length === 0) return;
   currentQuiz = shuffle(weakQs);
-  currentIdx = 0; quizAnswered = new Array(currentQuiz.length).fill(null); quizScore = 0;
+  currentIdx = 0; quizAnswered = new Array(currentQuiz.length).fill(null); quizRevealed = new Array(currentQuiz.length).fill(false); quizScore = 0;
   // showPage('quiz')より先にdisplayを設定しないと上書きされるため、showPageを先に呼ぶ
   showPage('quiz');
   document.getElementById('quiz-setup').style.display = 'none';
@@ -5089,7 +5365,7 @@ function startWeakReview() {
 function reviewSingle(id) {
   const q = questions.find(x => x.id === id);
   if (!q) return;
-  currentQuiz = [q]; currentIdx = 0; quizAnswered = [null]; quizScore = 0;
+  currentQuiz = [q]; currentIdx = 0; quizAnswered = [null]; quizRevealed = [false]; quizScore = 0;
   showPage('quiz');
   document.getElementById('quiz-setup').style.display = 'none';
   document.getElementById('quiz-area').style.display = '';
