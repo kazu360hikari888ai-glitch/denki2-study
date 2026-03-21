@@ -236,6 +236,30 @@
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
   }
+  /* 配線図（単線図）表示 */
+  .fb-wiring-wrap {
+    overflow-x: auto;
+    background: white;
+    border: 1px solid #b2e5c8;
+    border-radius: 8px;
+    padding: 6px;
+    margin: 8px 0 4px;
+    text-align: center;
+  }
+  .fb-wiring-img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+    border-radius: 4px;
+  }
+  .fb-wiring-img.fb-wiring-expanded {
+    max-width: none;
+    width: 200%;
+    cursor: zoom-out;
+  }
 
   body.dark .figure-box { background: #1e2536; border-color: #2e3f6e; }
   body.dark .figure-box-real { background: #1a2030; border-color: #3a5090; }
@@ -244,6 +268,7 @@
   body.dark .fb-tag { background: #252830; border-color: #2e3f6e; }
   body.dark .fb-circuit-svg { background: #252830; border-color: #2e3f6e; }
   body.dark .fb-real-img-wrap { background: #252830; border-color: #2e3f6e; }
+  body.dark .fb-wiring-wrap { background: #1a2520; border-color: #2a6042; }
 
   /* Study Plan (static parts) */
   .plan-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px; }
@@ -5524,7 +5549,7 @@ function buildFigureBox(q) {
     : `<span class="fb-note" style="font-size:11px;">（電気技術者試験センター 公式サイトで過去問PDFを検索）</span>`;
 
   // ══════════════════════════════════════════════
-  // ① 試験PDFから抽出した実際の図がある場合
+  // ① 試験PDFから抽出した実際の図（個別問題の回路図）
   // ══════════════════════════════════════════════
   const figSrc = (typeof QUESTION_FIGURES !== 'undefined') ? QUESTION_FIGURES[q.id] : null;
   if (figSrc) {
@@ -5540,11 +5565,23 @@ function buildFigureBox(q) {
   }
 
   // ══════════════════════════════════════════════
-  // ② 図がない場合 — カテゴリ別案内 or 概要ボックス
+  // ② 配線図カテゴリ → 年度の単線図全体を表示
   // ══════════════════════════════════════════════
-
-  // 配線図
   if (cat === '配線図') {
+    const wiringSrc = (typeof YEAR_WIRING_DIAGRAMS !== 'undefined') ? YEAR_WIRING_DIAGRAMS[q.year] : null;
+    if (wiringSrc) {
+      return `<div class="figure-box figure-box-wiring">
+        <div class="fb-head">📐 ${escHtml(q.year)} 配線図（単線図）<span class="fb-note-inline">（問31〜50 共通の図）</span></div>
+        <div class="fb-note" style="margin-bottom:6px;">⬇ スクロール・ピンチで拡大して確認してください。問${q.num}は図中の<strong>⑩〜⑲</strong>番号付き箇所に対応します。</div>
+        <div class="fb-wiring-wrap">
+          <img src="${wiringSrc}" alt="${escHtml(q.year)} 配線図" class="fb-wiring-img" loading="lazy"
+               onclick="this.classList.toggle('fb-wiring-expanded')" title="クリックで拡大/縮小">
+        </div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted);">📌 クリックで拡大表示</div>
+        <div style="margin-top:4px;">${pdfLinkHtml}</div>
+      </div>`;
+    }
+    // 配線図データがない場合のフォールバック
     return `<div class="figure-box figure-box-wiring">
       <div class="fb-icon-row">
         <div class="fb-icon-big">📐</div>
