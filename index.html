@@ -776,6 +776,17 @@
         <option value="all">全問</option>
       </select>
     </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+      <span style="font-size:13px;color:var(--muted);font-weight:600;">出題順：</span>
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+        <input type="radio" name="order-mode" id="order-random" value="random" checked style="cursor:pointer;">
+        🎲 ランダム
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;">
+        <input type="radio" name="order-mode" id="order-sequential" value="sequential" style="cursor:pointer;">
+        🔢 1番から順番
+      </label>
+    </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <button class="btn btn-primary" onclick="startQuiz()">▶ 開始する</button>
       <button class="btn btn-outline" onclick="showPage('dashboard')">← 戻る</button>
@@ -5473,6 +5484,7 @@ function startMode(mode) {
     document.getElementById('sel-year').value = 'all';
     document.getElementById('sel-cat').value = 'all';
     document.getElementById('sel-count').value = '10';
+    document.getElementById('order-random').checked = true;
   }
   startQuiz();
 }
@@ -5494,8 +5506,12 @@ function startQuiz() {
   }
   document.getElementById('empty-pool-msg').style.display = 'none';
 
-  // Fisher-Yates シャッフル
-  pool = shuffle(pool);
+  const orderMode = document.querySelector('input[name="order-mode"]:checked')?.value ?? 'random';
+  if (orderMode === 'random') {
+    pool = shuffle(pool);
+  } else {
+    pool.sort((a, b) => a.id - b.id);
+  }
   const count = countVal === 'all' ? pool.length : Math.min(parseInt(countVal), pool.length);
   currentQuiz = pool.slice(0, count);
   currentIdx = 0;
@@ -5527,6 +5543,7 @@ function startQuiz() {
 // 公式試験PDFのURL（年度→URL）
 const EXAM_PDFS = {
   'R7上':'https://www.shiken.or.jp/candidate/pdf/R7_2denshigaiyou_kami.pdf',
+  'R7下':'https://www.shiken.or.jp/construction/upload/20251026_co_second_q01.pdf',
   'R6上':'https://www.shiken.or.jp/candidate/pdf/R6_2denshigaiyou_kami.pdf',
   'R6下':'https://www.shiken.or.jp/candidate/pdf/R6_2denshigaiyou_shimo.pdf',
   'R5上':'https://www.shiken.or.jp/candidate/pdf/R5_2denshigaiyou_kami.pdf',
