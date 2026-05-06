@@ -5797,9 +5797,15 @@ const EXAM_PDFS = Object.fromEntries(
 
 // 同じPDFを何度もロードしないようキャッシュ
 const PDF_CACHE = {};
+// 日本語PDFを正しくデコードするためCMap配信URLを指定
+const PDFJS_CMAP_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/';
 function loadPdf(url) {
   if (!PDF_CACHE[url]) {
-    PDF_CACHE[url] = pdfjsLib.getDocument(url).promise;
+    PDF_CACHE[url] = pdfjsLib.getDocument({
+      url: url,
+      cMapUrl: PDFJS_CMAP_URL,
+      cMapPacked: true,
+    }).promise;
   }
   return PDF_CACHE[url];
 }
