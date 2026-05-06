@@ -5944,6 +5944,34 @@ function _setModalState(state) {
   iframe.style.display = state === 'iframe' ? 'block' : 'none';
 }
 
+// file:// で開いている場合の通知（PDF切り出しは簡易サーバが必要）
+function _showFileProtocolNotice() {
+  const foot = document.querySelector('#pdf-viewer-modal .pdf-modal-foot');
+  if (foot) {
+    foot.innerHTML = '⚠️ <strong>file://</strong>で開いているため問題単体の切り出しはできません。' +
+      'PDFの<strong>全体表示</strong>に切替えました。' +
+      '<br>切り出し表示するには、プロジェクトフォルダで簡易サーバ起動：' +
+      '<code style="background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">python -m http.server</code>' +
+      ' → ブラウザで <code style="background:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">http://localhost:8000</code>';
+    foot.style.color = '#a04000';
+    foot.style.background = '#fdebd0';
+    foot.style.lineHeight = '1.6';
+    foot.style.padding = '10px 16px';
+    foot.style.fontSize = '12px';
+  }
+}
+function _resetModalFoot() {
+  const foot = document.querySelector('#pdf-viewer-modal .pdf-modal-foot');
+  if (foot) {
+    foot.innerHTML = '表示が崩れる場合は「🔗 別タブ」または「📖 全体」を押してください。';
+    foot.style.color = '';
+    foot.style.background = '';
+    foot.style.lineHeight = '';
+    foot.style.padding = '';
+    foot.style.fontSize = '';
+  }
+}
+
 async function openPdfViewer(year, num) {
   const url = EXAM_PDFS[year];
   if (!url) {
@@ -5963,12 +5991,20 @@ async function openPdfViewer(year, num) {
   openLink.href = url;
   canvasWrap.innerHTML = '';
   fullBtn.style.display = 'none';
+  _resetModalFoot();
   modal.classList.add('show');
   document.body.style.overflow = 'hidden';
 
   // 問題番号指定なし → そのまま全体表示
   if (num == null) {
     showFullPdfInModal();
+    return;
+  }
+
+  // file:// では fetch がブロックされるので、即座に全体表示にフォールバック
+  if (location.protocol === 'file:') {
+    showFullPdfInModal();
+    _showFileProtocolNotice();
     return;
   }
 
@@ -5982,7 +6018,7 @@ async function openPdfViewer(year, num) {
   try {
     const canvas = await renderQuestionRegion(url, num);
     if (!canvas) {
-      errorMsg.textContent = `問${num}の位置を自動検出できませんでした。`;
+      errorMsg.textContent = `問${num}の位置を自動検出できませんでした。「📖 PDF全体を表示」をご利用ください。`;
       _setModalState('error');
       return;
     }
@@ -5992,8 +6028,11 @@ async function openPdfViewer(year, num) {
     _setModalState('canvas');
   } catch (err) {
     console.error('[PDF render error]', err);
-    errorMsg.textContent = 'PDFの読み込みに失敗しました。' +
-      '（ローカルで開く場合は index.html とPDFフォルダを同じ場所に置いてください）';
+    // PDF.js のフェッチ失敗は概ねブラウザ側のセキュリティ制限
+    errorMsg.innerHTML =
+      'PDFの解析に失敗しました。<br>' +
+      '<small>原因: ブラウザがローカルPDFへのアクセスを制限している可能性があります。' +
+      '「📖 PDF全体を表示」または「🔗 別タブ」でご確認ください。</small>';
     _setModalState('error');
   }
 }
