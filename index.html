@@ -651,9 +651,156 @@
   body.dark .ref-modal-table code { background: #2e3140; color: var(--primary); }
   body.dark .ref-modal-note { background: #2e2a15; border-color: #d4ac0d; color: #d4c060; }
   body.dark .ref-modal-table td:first-child { color: var(--muted); }
+
+  /* ============ 問題PDFビューア モーダル ============ */
+  /* 上下の余白を均一に保つため、padding は上下とも同じ値を使用 */
+  .pdf-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    padding: 32px 24px;       /* 上32 下32 で上下対称 */
+    box-sizing: border-box;
+  }
+  .pdf-modal.show {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+  .pdf-modal-card {
+    width: 100%;
+    max-width: 980px;
+    background: #ffffff;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    /* card自体は親flexのstretchで上下とも同じ余白になる */
+  }
+  .pdf-modal-head {
+    flex: 0 0 auto;
+    background: var(--primary);
+    color: white;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .pdf-modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pdf-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .pdf-modal-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    color: white;
+    border-radius: 18px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .pdf-modal-btn:hover { background: rgba(255, 255, 255, 0.28); }
+  .pdf-modal-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .pdf-modal-close:hover { background: rgba(255, 255, 255, 0.28); }
+  .pdf-modal-iframe {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;             /* flexの子要素として高さを正しく使う */
+    border: none;
+    background: #2c3e50;       /* PDF読込中の背景 */
+    display: block;
+  }
+  .pdf-modal-foot {
+    flex: 0 0 auto;
+    background: #f4f6f9;
+    border-top: 1px solid var(--border);
+    padding: 8px 16px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* 問題カード上の「問題PDFを表示」ボタン */
+  .q-pdf-btn {
+    margin-left: auto;          /* タグ群の右端に配置 */
+    background: #eaf0fb;
+    border: 1px solid #c2d3f5;
+    color: var(--primary);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .q-pdf-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  body.dark .pdf-modal-card { background: var(--card); }
+  body.dark .pdf-modal-foot { background: #1a2030; border-color: #2e3f6e; }
+  body.dark .q-pdf-btn { background: #1e2536; border-color: #2e3f6e; color: var(--primary); }
+
+  /* スマホでの上下余白調整 */
+  @media (max-width: 600px) {
+    .pdf-modal { padding: 16px 8px; }   /* 上下とも 16px で対称 */
+    .pdf-modal-title { font-size: 12px; }
+    .pdf-modal-btn { padding: 4px 9px; font-size: 11px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- 問題PDFビューア（モーダル）-->
+<div id="pdf-viewer-modal" class="pdf-modal" onclick="if(event.target===this)closePdfViewer()">
+  <div class="pdf-modal-card">
+    <div class="pdf-modal-head">
+      <div class="pdf-modal-title" id="pdf-modal-title">問題PDF</div>
+      <div class="pdf-modal-actions">
+        <a id="pdf-modal-open" class="pdf-modal-btn" href="#" target="_blank" rel="noopener" title="別タブで開く">🔗 別タブ</a>
+        <button class="pdf-modal-close" onclick="closePdfViewer()" title="閉じる (Esc)" aria-label="閉じる">✕</button>
+      </div>
+    </div>
+    <iframe id="pdf-modal-iframe" class="pdf-modal-iframe" src="about:blank" title="問題PDFビューア"></iframe>
+    <div class="pdf-modal-foot">PDFが表示されない場合は「🔗 別タブ」で開いてご確認ください。</div>
+  </div>
+</div>
 
 <header>
   <div style="font-size:28px;">⚡</div>
@@ -5486,7 +5633,6 @@ function startMode(mode) {
     document.getElementById('sel-count').value = '10';
     document.getElementById('order-random').checked = true;
   }
-  startQuiz();
 }
 
 function startQuiz() {
@@ -5540,17 +5686,67 @@ function startQuiz() {
 // 回路図・図ボックス生成
 // ============================================================
 
-// 公式試験PDFのURL（年度→URL）
-const EXAM_PDFS = {
-  'R7上':'https://www.shiken.or.jp/candidate/pdf/R7_2denshigaiyou_kami.pdf',
-  'R7下':'https://www.shiken.or.jp/construction/upload/20251026_co_second_q01.pdf',
-  'R6上':'https://www.shiken.or.jp/candidate/pdf/R6_2denshigaiyou_kami.pdf',
-  'R6下':'https://www.shiken.or.jp/candidate/pdf/R6_2denshigaiyou_shimo.pdf',
-  'R5上':'https://www.shiken.or.jp/candidate/pdf/R5_2denshigaiyou_kami.pdf',
-  'R5下':'https://www.shiken.or.jp/candidate/pdf/R5_2denshigaiyou_shimo.pdf',
-  'R4上':'https://www.shiken.or.jp/candidate/pdf/R4_2denshigaiyou_kami.pdf',
-  'R4下':'https://www.shiken.or.jp/candidate/pdf/R4_2denshigaiyou_shimo.pdf',
+// 試験PDFのパス（年度→ローカルPDFフォルダのファイル）
+// PDFフォルダ内のファイルを参照（日本語ファイル名はencodeURIで安全化）
+const EXAM_PDFS_RAW = {
+  'H28上': 'PDF/2016_上期_試験_問題_20160605.pdf',
+  'H28下': 'PDF/2016_下期_筆記_問題_20161001.pdf',
+  'H29上': 'PDF/2017_上期_試験_問題_20170604.pdf',
+  'H29下': 'PDF/2017_期不明_試験_問題_20170930.pdf',
+  'H30上': 'PDF/2018_上期_試験_問題_20180603.pdf',
+  'H30下': 'PDF/2018_下期_筆記_問題_20181007.pdf',
+  'R1上':  'PDF/2019_上期_試験_問題_20190602.pdf',
+  'R1下':  'PDF/2019_下期_筆記_問題_20191006.pdf',
+  'R2':    'PDF/2020_下期_筆記_問題_20201004.pdf',
+  'R3上':  'PDF/2021_上期_筆記_問題_20210530.pdf',
+  'R3下':  'PDF/2021_下期_筆記_問題_20211024.pdf',
+  'R4上':  'PDF/2022_上期_筆記_問題_20220529.pdf',
+  'R4下':  'PDF/2022_下期_筆記_問題_20221030.pdf',
+  'R5上':  'PDF/2023_上期_学科_問題_20230528.pdf',
+  'R5下':  'PDF/2023_下期_学科_問題_20231029.pdf',
+  'R6上':  'PDF/2024_上期_学科_問題_20240526.pdf',
+  'R6下':  'PDF/2024_下期_学科_問題_20241027.pdf',
+  'R7上':  'PDF/2025_上期_学科_問題_20250525.pdf',
+  'R7下':  'PDF/2025_下期_学科_問題_20251026.pdf',
 };
+const EXAM_PDFS = Object.fromEntries(
+  Object.entries(EXAM_PDFS_RAW).map(([k, v]) => [k, encodeURI(v)])
+);
+
+// PDFビューア（モーダル）
+function openPdfViewer(year, num) {
+  const url = EXAM_PDFS[year];
+  if (!url) {
+    alert('この年度のPDFは登録されていません。');
+    return;
+  }
+  const modal = document.getElementById('pdf-viewer-modal');
+  const iframe = document.getElementById('pdf-modal-iframe');
+  const titleEl = document.getElementById('pdf-modal-title');
+  const openLink = document.getElementById('pdf-modal-open');
+  // ページジャンプ等を含む可能性のあるブラウザ用フラグメントは保持しない
+  iframe.src = url + '#view=FitH';
+  titleEl.textContent = num != null
+    ? `${year} 問${num} 問題PDF`
+    : `${year} 問題PDF`;
+  openLink.href = url;
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closePdfViewer() {
+  const modal = document.getElementById('pdf-viewer-modal');
+  const iframe = document.getElementById('pdf-modal-iframe');
+  modal.classList.remove('show');
+  iframe.src = 'about:blank';
+  document.body.style.overflow = '';
+}
+// ESCキーで閉じる
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('pdf-viewer-modal');
+    if (modal && modal.classList.contains('show')) closePdfViewer();
+  }
+});
 
 function hasFigureRef(qText) {
   return /図[にのよう示をはが]|下図|上図|次の図|右図|左図|左側の図|右側の図/.test(qText);
@@ -5562,7 +5758,7 @@ function buildFigureBox(q) {
   const cat = q.cat;
   const pdfUrl = EXAM_PDFS[q.year];
   const pdfLinkHtml = pdfUrl
-    ? `<a class="fb-pdf-link" href="${pdfUrl}" target="_blank" rel="noopener">📄 ${escHtml(q.year)} 公式問題PDF（問${q.num}）を確認する</a>`
+    ? `<button type="button" class="fb-pdf-link" onclick="openPdfViewer('${q.year}', ${q.num})">📄 ${escHtml(q.year)} 問題PDF（問${q.num}）をプレビュー</button>`
     : `<span class="fb-note" style="font-size:11px;">（電気技術者試験センター 公式サイトで過去問PDFを検索）</span>`;
 
   // ══════════════════════════════════════════════
@@ -5822,11 +6018,18 @@ function renderQuestion() {
 
   const figureBoxHtml = buildFigureBox(q);
 
+  // 問題ごとのPDFビュー起動ボタン（PDFが登録されていればすべての問題で表示）
+  const hasExamPdf = !!EXAM_PDFS[q.year];
+  const pdfBtnHtml = hasExamPdf
+    ? `<button type="button" class="q-pdf-btn" onclick="openPdfViewer('${q.year}', ${q.num})" title="${escHtml(q.year)}の問題PDFを表示">📄 問題PDFを表示</button>`
+    : '';
+
   document.getElementById('q-card').innerHTML = `
     <div class="q-meta">
       <span class="tag tag-year">${escHtml(q.year)}</span>
       <span class="tag tag-num">問${q.num}</span>
       <span class="tag tag-cat">${escHtml(q.cat)}</span>
+      ${pdfBtnHtml}
     </div>
     <div class="question-text">${escHtml(q.q)}</div>
     ${figureBoxHtml}
