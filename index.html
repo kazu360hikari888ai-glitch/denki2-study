@@ -783,7 +783,70 @@
     .pdf-modal-title { font-size: 12px; }
     .pdf-modal-btn { padding: 4px 9px; font-size: 11px; }
   }
+
+  /* PDF.js でレンダリングしたcanvas表示エリア */
+  .pdf-modal-canvas-wrap {
+    flex: 1 1 auto;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    background: #2c3e50;
+    overflow: auto;
+    padding: 24px 16px;       /* 上下24px で対称 */
+    min-height: 0;
+  }
+  .pdf-modal-canvas-wrap.show { display: flex; }
+  .pdf-modal-canvas-wrap canvas {
+    background: white;
+    max-width: 100%;
+    height: auto;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+  }
+  #pdf-modal-loading {
+    flex: 1 1 auto;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #2c3e50;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    gap: 12px;
+    min-height: 240px;
+  }
+  #pdf-modal-loading.show { display: flex; }
+  .pdf-modal-spinner {
+    width: 32px; height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: pdf-spin 0.8s linear infinite;
+  }
+  @keyframes pdf-spin { to { transform: rotate(360deg); } }
+  .pdf-modal-error {
+    flex: 1 1 auto;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #2c3e50;
+    color: #fdedec;
+    font-size: 13px;
+    text-align: center;
+    padding: 24px;
+    line-height: 1.7;
+  }
+  .pdf-modal-error.show { display: flex; }
 </style>
+
+<!-- PDF.js (CDN) — PDFから問題部分のみ抽出表示するためのライブラリ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 </head>
 <body>
 
@@ -793,12 +856,27 @@
     <div class="pdf-modal-head">
       <div class="pdf-modal-title" id="pdf-modal-title">問題PDF</div>
       <div class="pdf-modal-actions">
+        <button id="pdf-modal-full-btn" class="pdf-modal-btn" onclick="showFullPdfInModal()" style="display:none;" title="PDF全体を表示">📖 全体</button>
         <a id="pdf-modal-open" class="pdf-modal-btn" href="#" target="_blank" rel="noopener" title="別タブで開く">🔗 別タブ</a>
         <button class="pdf-modal-close" onclick="closePdfViewer()" title="閉じる (Esc)" aria-label="閉じる">✕</button>
       </div>
     </div>
-    <iframe id="pdf-modal-iframe" class="pdf-modal-iframe" src="about:blank" title="問題PDFビューア"></iframe>
-    <div class="pdf-modal-foot">PDFが表示されない場合は「🔗 別タブ」で開いてご確認ください。</div>
+    <div id="pdf-modal-loading">
+      <div class="pdf-modal-spinner"></div>
+      <span>PDFを解析中...</span>
+    </div>
+    <div id="pdf-modal-canvas-wrap" class="pdf-modal-canvas-wrap"></div>
+    <div id="pdf-modal-error" class="pdf-modal-error">
+      <div>
+        <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
+        <div id="pdf-modal-error-msg">問題位置を自動検出できませんでした。</div>
+        <div style="margin-top:14px;">
+          <button class="pdf-modal-btn" onclick="showFullPdfInModal()" style="background:rgba(255,255,255,0.25);">📖 PDF全体を表示</button>
+        </div>
+      </div>
+    </div>
+    <iframe id="pdf-modal-iframe" class="pdf-modal-iframe" src="about:blank" title="問題PDFビューア" style="display:none;"></iframe>
+    <div class="pdf-modal-foot">表示が崩れる場合は「🔗 別タブ」または「📖 全体」を押してください。</div>
   </div>
 </div>
 
@@ -5713,33 +5791,232 @@ const EXAM_PDFS = Object.fromEntries(
   Object.entries(EXAM_PDFS_RAW).map(([k, v]) => [k, encodeURI(v)])
 );
 
-// PDFビューア（モーダル）
-function openPdfViewer(year, num) {
+// ============================================================
+// PDF.js を使った問題ピンポイント表示
+// ============================================================
+
+// 同じPDFを何度もロードしないようキャッシュ
+const PDF_CACHE = {};
+function loadPdf(url) {
+  if (!PDF_CACHE[url]) {
+    PDF_CACHE[url] = pdfjsLib.getDocument(url).promise;
+  }
+  return PDF_CACHE[url];
+}
+
+// 全角数字→半角数字 normalizer
+function _normalizeDigits(s) {
+  return s.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+}
+
+// PDFの全ページから「問N」マーカーを抽出
+async function _extractQuestionMarkers(pdf) {
+  const all = []; // { page, num, x, y, height, pageWidth, pageHeight }
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const textContent = await page.getTextContent();
+    const viewport = page.getViewport({ scale: 1 });
+    const items = textContent.items;
+
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      const s = _normalizeDigits(it.str || '');
+      let qnum = null;
+
+      // パターン1: "問46" / "問 46" を1要素で含む
+      let m = s.match(/問\s*(\d{1,2})/);
+      if (m) {
+        qnum = parseInt(m[1], 10);
+      } else if (s.trim() === '問' && i + 1 < items.length) {
+        // パターン2: "問" 単独 + 次の要素が数字
+        const next = _normalizeDigits(items[i + 1].str || '').trim();
+        const m2 = next.match(/^(\d{1,2})/);
+        if (m2) qnum = parseInt(m2[1], 10);
+      }
+
+      if (qnum != null && qnum >= 1 && qnum <= 50) {
+        all.push({
+          page: pageNum,
+          num: qnum,
+          x: it.transform[4],
+          y: it.transform[5],
+          height: it.height || 12,
+          pageWidth: viewport.width,
+          pageHeight: viewport.height,
+        });
+      }
+    }
+  }
+  return all;
+}
+
+// 指定問の領域を計算
+async function findQuestionRegion(pdf, num) {
+  const markers = await _extractQuestionMarkers(pdf);
+  if (!markers.length) return null;
+
+  // 同じ番号が複数見つかる場合 → 最初に出現したもの
+  const target = markers.find(m => m.num === num);
+  if (!target) return null;
+
+  // 同ページ内のマーカー
+  const samePage = markers.filter(m => m.page === target.page);
+
+  // 同じカラム（X座標が近い）かつ target より下（PDF座標で y が小さい）のマーカー
+  const sameColLower = samePage
+    .filter(m => m.num !== num && Math.abs(m.x - target.x) < 30 && m.y < target.y)
+    .sort((a, b) => b.y - a.y); // y降順 → targetに近い順
+
+  // カラム検出（複数X座標）
+  const xs = [...new Set(samePage.map(m => Math.round(m.x)))].sort((a, b) => a - b);
+  // target より右にある別カラムのX
+  const nextColX = xs.find(x => x > target.x + 30);
+  const colRightX = nextColX != null ? (nextColX - 5) : (target.pageWidth - 10);
+
+  // 領域決定（PDF座標：原点 左下、Y は上ほど大きい）
+  const padTop = (target.height || 12) + 6;     // マーカーの上余白
+  const padBottom = 8;                          // 次マーカーの直前で止める
+  const y1 = Math.min(target.y + padTop, target.pageHeight); // 上端
+  const y2 = sameColLower.length > 0
+    ? Math.max(0, sameColLower[0].y + padBottom)
+    : 0;                                        // 下端（次マーカー or ページ下端）
+
+  const x1 = Math.max(0, target.x - 8);
+  const x2 = Math.min(target.pageWidth, colRightX);
+
+  if (y1 - y2 < 30 || x2 - x1 < 50) return null; // 領域が小さすぎたら諦める
+
+  return {
+    page: target.page,
+    x1, x2, y1, y2,
+    pageWidth: target.pageWidth,
+    pageHeight: target.pageHeight,
+  };
+}
+
+// 領域をcanvasにレンダリング
+async function renderQuestionRegion(url, num) {
+  const pdf = await loadPdf(url);
+  const region = await findQuestionRegion(pdf, num);
+  if (!region) return null;
+
+  const page = await pdf.getPage(region.page);
+  const scale = 2.2;
+  const viewport = page.getViewport({ scale });
+
+  // フルページを一旦オフスクリーン描画
+  const fullCanvas = document.createElement('canvas');
+  fullCanvas.width = Math.ceil(viewport.width);
+  fullCanvas.height = Math.ceil(viewport.height);
+  const ctx = fullCanvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  // PDF座標(Y下が0)→canvas座標(Y上が0)に変換して切り出し
+  const cropX = Math.round(region.x1 * scale);
+  const cropY = Math.round((region.pageHeight - region.y1) * scale);
+  const cropW = Math.round((region.x2 - region.x1) * scale);
+  const cropH = Math.round((region.y1 - region.y2) * scale);
+
+  if (cropW <= 0 || cropH <= 0) return null;
+
+  const dispCanvas = document.createElement('canvas');
+  dispCanvas.width = cropW;
+  dispCanvas.height = cropH;
+  const dctx = dispCanvas.getContext('2d');
+  dctx.drawImage(fullCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+  return dispCanvas;
+}
+
+// ============================================================
+// PDFビューア モーダル制御
+// ============================================================
+let _currentPdfUrl = null;
+
+function _setModalState(state) {
+  // state: 'loading' | 'canvas' | 'error' | 'iframe'
+  const loading = document.getElementById('pdf-modal-loading');
+  const canvasWrap = document.getElementById('pdf-modal-canvas-wrap');
+  const errorBox = document.getElementById('pdf-modal-error');
+  const iframe = document.getElementById('pdf-modal-iframe');
+  loading.classList.toggle('show', state === 'loading');
+  canvasWrap.classList.toggle('show', state === 'canvas');
+  errorBox.classList.toggle('show', state === 'error');
+  iframe.style.display = state === 'iframe' ? 'block' : 'none';
+}
+
+async function openPdfViewer(year, num) {
   const url = EXAM_PDFS[year];
   if (!url) {
     alert('この年度のPDFは登録されていません。');
     return;
   }
+
   const modal = document.getElementById('pdf-viewer-modal');
-  const iframe = document.getElementById('pdf-modal-iframe');
   const titleEl = document.getElementById('pdf-modal-title');
   const openLink = document.getElementById('pdf-modal-open');
-  // ページジャンプ等を含む可能性のあるブラウザ用フラグメントは保持しない
-  iframe.src = url + '#view=FitH';
-  titleEl.textContent = num != null
-    ? `${year} 問${num} 問題PDF`
-    : `${year} 問題PDF`;
+  const fullBtn = document.getElementById('pdf-modal-full-btn');
+  const canvasWrap = document.getElementById('pdf-modal-canvas-wrap');
+  const errorMsg = document.getElementById('pdf-modal-error-msg');
+
+  _currentPdfUrl = url;
+  titleEl.textContent = num != null ? `${year} 問${num}` : `${year} 問題PDF`;
   openLink.href = url;
+  canvasWrap.innerHTML = '';
+  fullBtn.style.display = 'none';
   modal.classList.add('show');
   document.body.style.overflow = 'hidden';
+
+  // 問題番号指定なし → そのまま全体表示
+  if (num == null) {
+    showFullPdfInModal();
+    return;
+  }
+
+  // PDF.js が読めない環境はフォールバック
+  if (typeof pdfjsLib === 'undefined') {
+    showFullPdfInModal();
+    return;
+  }
+
+  _setModalState('loading');
+  try {
+    const canvas = await renderQuestionRegion(url, num);
+    if (!canvas) {
+      errorMsg.textContent = `問${num}の位置を自動検出できませんでした。`;
+      _setModalState('error');
+      return;
+    }
+    canvasWrap.innerHTML = '';
+    canvasWrap.appendChild(canvas);
+    fullBtn.style.display = 'inline-flex';
+    _setModalState('canvas');
+  } catch (err) {
+    console.error('[PDF render error]', err);
+    errorMsg.textContent = 'PDFの読み込みに失敗しました。' +
+      '（ローカルで開く場合は index.html とPDFフォルダを同じ場所に置いてください）';
+    _setModalState('error');
+  }
 }
+
+function showFullPdfInModal() {
+  if (!_currentPdfUrl) return;
+  const iframe = document.getElementById('pdf-modal-iframe');
+  iframe.src = _currentPdfUrl + '#view=FitH';
+  document.getElementById('pdf-modal-full-btn').style.display = 'none';
+  _setModalState('iframe');
+}
+
 function closePdfViewer() {
   const modal = document.getElementById('pdf-viewer-modal');
   const iframe = document.getElementById('pdf-modal-iframe');
+  const canvasWrap = document.getElementById('pdf-modal-canvas-wrap');
   modal.classList.remove('show');
   iframe.src = 'about:blank';
+  canvasWrap.innerHTML = '';
+  _currentPdfUrl = null;
   document.body.style.overflow = '';
 }
+
 // ESCキーで閉じる
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
